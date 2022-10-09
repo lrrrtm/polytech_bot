@@ -267,7 +267,6 @@ def callback(call):
                             db.commit()
                         finally:
                             lock.release()
-                        bot.send_message(mainAdminID, serviceMessage_5.format(a[0]))
             text = serviceMessage_4
             bot.send_message(mainAdminID, text, parse_mode="Markdown")
 
