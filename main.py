@@ -658,8 +658,12 @@ def sendText(message):
 
 
 def getCat(tID):
-    link = requests.get(catLink).text
-    link2 = str(link.split("\/")[4])
+    link2 = ""
+    while True:
+        link = requests.get(catLink).text
+        if "jpg" in link:
+            link2 = link.split("\/")[4]
+            break
     link2 = link2[0:link2.find("\"")]
     r = requests.get(catLinkGet.format(link2))
 
@@ -667,6 +671,6 @@ def getCat(tID):
         f.write(r.content)
         f.close()
 
-    bot.send_photo(tID, open(f"{mainSource}/cats/{tID}.jpg", 'rb'))
+    bot.send_photo(tID, open(f"{mainSource}/cats/{tID}.jpg",'rb'))
 
 bot.polling(none_stop=True)
