@@ -551,7 +551,7 @@ def editName(message):
             db.commit()
         finally:
             lock.release()
-        text = replyMessage_1.format(name.capitalize())
+        text = replyMessage_8.format(name.capitalize())
         bot.send_message(tID, text, parse_mode="Markdown")
         text = startMessage_2
         bot.send_message(tID, text, parse_mode="Markdown")
