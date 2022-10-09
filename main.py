@@ -474,9 +474,14 @@ def getSchedule(tID):
         schedule[int(date)] = day
 
     try:
+        print(curDay)
+        print(schedule)
         curdaySchedule = schedule[curDay]
     except KeyError:
-        bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
+        if int(dateNow.weekday()) + 1 == 6:
+            bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
+        else:
+            bot.send_message(tID, "Мы обновляем раписание на сегодняшний день, нужно немного подождать")
         return 0
 
     endingLastLesson = int(curdaySchedule[-1]["time"][1].split(":")[0])
