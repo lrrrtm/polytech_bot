@@ -74,6 +74,6 @@ mainAdminID = 409801981
 #-----------------------------------------------------------------------------------------
 
 #КОНСТАНТЫ
-scheduleLink = "https://ruz.spbstu.ru/faculty/{0}/groups/{1}"
+scheduleLink = "https://ruz.spbstu.ru/faculty/{0}/groups/{1}}?date={2}}-{3}-{4}}"
 timeZone = "Turkey"
 alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ "

@@ -432,13 +432,14 @@ def getSchedule(tID):
         link = cur.fetchall()[0][0]
     finally:
         lock.release()
-    contents = requests.get(link).text
-    soup = BeautifulSoup(contents, 'lxml')
     IST = pytz.timezone(timeZone)
     dateNow = datetime.now(IST)
     curDay, curHour = dateNow.day, dateNow.hour
     curMonth, curYear = dateNow.month, dateNow.year
     curMin = dateNow.min
+    contents = requests.get(str(link) + f"?date={curYear}-{curMonth}-{curDay}").text
+    soup = BeautifulSoup(contents, 'lxml')
+
 
     schedules = soup.find_all("li", class_="schedule__day")
 
@@ -462,7 +463,7 @@ def getSchedule(tID):
             if str(teacherName) == "None":
                 teacherName = "отсутствует"
             else:
-                teacherName = teacherName
+                teacherName = teacherName.text
             lesson = {
                 "time": time,
                 "subject": subName.text,
