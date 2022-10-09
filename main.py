@@ -213,7 +213,7 @@ def callback(call):
         elif call.data == "map_26":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[26][0], longitude=location[26][1])
-            text = replyMessage_6.format(places["abitipm"])
+            text = replyMessage_6.format(places["ipm"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "settings_name":
@@ -407,6 +407,10 @@ def addLink(message):
     link = link.split("/")
     try:
         marker1, marker2 = link[link.index("faculty") + 1], link[link.index("groups") + 1]
+        try:
+            marker2 = marker2[0:str(marker2).find("?")]
+        except:
+            pass
         if checkURL(marker1, marker2):
             try:
                 lock.acquire(True)
@@ -461,7 +465,7 @@ def getSchedule(tID):
             typeName = soup.find("div", class_="lesson__type")
             time = soup.find("span", class_="lesson__time").text.split("-")
             if str(teacherName) == "None":
-                teacherName = "отсутствует"
+                teacherName = "Несколько преподавателей/преподаватель отсутствует"
             else:
                 teacherName = teacherName.text
             lesson = {
@@ -475,8 +479,7 @@ def getSchedule(tID):
         schedule[int(date)] = day
 
     try:
-        print(curDay)
-        print(schedule)
+        print(tID, schedule)
         curdaySchedule = schedule[curDay]
     except KeyError:
         if int(dateNow.weekday()) + 1 == 6:
@@ -510,7 +513,8 @@ def getSchedule(tID):
             message += curLessonText + "\n\n"
         markup = types.InlineKeyboardMarkup(row_width=1)
         if int(dateNow.weekday()) + 1 != 6:
-            markup.add(btn_27)
+            #markup.add(btn_27)
+            pass
         bot.send_message(tID, message, parse_mode="Markdown", reply_markup=markup)
     else:
         if int(dateNow.weekday()) + 1 == 6:
@@ -553,13 +557,10 @@ def editName(message):
             lock.acquire(True)
             cur.execute(
                 f"update users set name = \"{name}\" where tID = {tID}")
-            print(f"{tID}/{name} зарегистрирован(а)")
             db.commit()
         finally:
             lock.release()
         text = replyMessage_8.format(name.capitalize())
-        bot.send_message(tID, text, parse_mode="Markdown")
-        text = startMessage_2
         bot.send_message(tID, text, parse_mode="Markdown")
     else:
         if flag == 1:
@@ -580,6 +581,10 @@ def editLink(message):
     link = link.split("/")
     try:
         marker1, marker2 = link[link.index("faculty") + 1], link[link.index("groups") + 1]
+        try:
+            marker2 = marker2[0:str(marker2).find("?")]
+        except:
+            pass
         if checkURL(marker1, marker2):
             try:
                 lock.acquire(True)
