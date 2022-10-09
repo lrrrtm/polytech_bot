@@ -77,3 +77,5 @@ mainAdminID = 409801981
 scheduleLink = "https://ruz.spbstu.ru/faculty/{0}/groups/{1}"
 timeZone = "Turkey"
 alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ "
+catLink = "https://meow.senither.com/v1/type/jpg"
+catLinkGet = "https://meow.senither.com/c/{0}"

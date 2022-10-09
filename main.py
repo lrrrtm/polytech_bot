@@ -371,6 +371,16 @@ def startMessage(message):
         msg = bot.send_message(tID, text, parse_mode="Markdown")
         bot.register_next_step_handler(msg, sendText)
 
+@bot.message_handler(commands=['cats'])
+def startCats(message):
+    tID = message.chat.id
+    if inDatabase(tID):
+        getCat(tID)
+    else:
+        text = errorMessage_5
+        bot.send_message(tID, text, parse_mode="Markdown")
+
+
 #-----------------------------------------------------------------------------------------
 
 def inputName(message):
@@ -645,5 +655,18 @@ def sendText(message):
     markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(btn_34, btn_11)
     bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
+
+
+def getCat(tID):
+    link = requests.get(catLink).text
+    link2 = str(link.split("\/")[4])
+    link2 = link2[0:link2.find("\"")]
+    r = requests.get(catLinkGet.format(link2))
+
+    with open(f"{mainSource}/cats/{tID}.jpg", 'wb') as f:
+        f.write(r.content)
+        f.close()
+
+    bot.send_photo(tID, open(f"{mainSource}/cats/{tID}.jpg", 'rb'))
 
 bot.polling(none_stop=True)
