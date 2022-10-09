@@ -62,7 +62,7 @@ symbols = "!?.,$&^*#@;-=+"
 
 #ПУТИ
 dbName = "db.db"
-mainSource = "D:\\Education\\Pycharm projects\\botSPbSTU\\"
+mainSource = "D:\\Education\\Pycharm projects\\polytech_bot\\"
 #mainSource = "/home/lrrrtm1/"
 
 #-----------------------------------------------------------------------------------------
@@ -76,4 +76,4 @@ mainAdminID = 409801981
 #КОНСТАНТЫ
 scheduleLink = "https://ruz.spbstu.ru/faculty/{0}/groups/{1}"
 timeZone = "Turkey"
-alphabet = "АБВГДЕЁЖЗИЙQКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ "

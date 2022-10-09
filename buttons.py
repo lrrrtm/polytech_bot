@@ -78,4 +78,19 @@ map_24 = types.InlineKeyboardButton(f"{places['teach_house']}", callback_data="m
 map_25 = types.InlineKeyboardButton(f"{places['abit']}", callback_data="map_25")
 map_26 = types.InlineKeyboardButton(f"{places['ipm']}", callback_data="map_26")
 
+#-----------------------------------------------------------------------------------------
 
+#РАСПИСАНИЕ
+btn_27 = types.InlineKeyboardButton("Расписание на завтра", callback_data="schedule_nextd")
+btn_28 = types.InlineKeyboardButton("", callback_data="schedule_nextnextd")
+btn_29 = types.InlineKeyboardButton("Расписание на неделю", callback_data="schedule_all")
+
+btn_30 = types.InlineKeyboardButton("", callback_data="")
+btn_31 = types.InlineKeyboardButton("", callback_data="")
+btn_32 = types.InlineKeyboardButton("", callback_data="")
+btn_33 = types.InlineKeyboardButton("", callback_data="")
+
+#-----------------------------------------------------------------------------------------
+
+#АДМИН
+btn_34 = types.InlineKeyboardButton("Отправить ✅", callback_data="sendMessage")

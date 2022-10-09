@@ -4,14 +4,17 @@ from config import *
 from buttons import *
 from text import *
 
+import threading
 import telebot
 import sqlite3
 import os
 import itertools
 import pytz
 import xlsxwriter
+import dog
 
 from datetime import datetime
+from datetime import time as dTime
 from bs4 import BeautifulSoup
 from docxtpl import DocxTemplate
 
@@ -25,7 +28,10 @@ dateNow = str(datetime.now(IST))[0:10]
 timeNow = str(datetime.now(IST))[11:16]
 text = serviceMessage_1
 bot.send_message(mainAdminID, serviceMessage_1.format(dateNow, timeNow))
-
+global lock
+lock = threading.Lock()
+global allSendMessage
+allSendMessage = ""
 #-----------------------------------------------------------------------------------------
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -212,8 +218,12 @@ def callback(call):
 
         elif call.data == "settings_name":
             bot.delete_message(tID, call.message.message_id)
-            cur.execute(f"select name, tID from users where tID = {tID}")
-            name = cur.fetchall()[0][0]
+            try:
+                lock.acquire(True)
+                cur.execute(f"select name, tID from users where tID = {tID}")
+                name = cur.fetchall()[0][0]
+            finally:
+                lock.release()
             markup = types.InlineKeyboardMarkup(row_width=1)
             markup.add(btn_11)
             text = settingsMessage_1.format(name)
@@ -225,7 +235,7 @@ def callback(call):
             text = settingsMessage_2
             markup = types.InlineKeyboardMarkup(row_width=1)
             markup.add(btn_11)
-            msg = bot.send_photo(tID, photo=open("reg_link.png", "rb"), caption=text, parse_mode="Markdown", reply_markup=markup)
+            msg = bot.send_message(tID, text, parse_mode="Markdown", reply_markup=markup)
             bot.register_next_step_handler(msg, editLink)
 
         elif call.data == "settings_help":
@@ -238,6 +248,29 @@ def callback(call):
             text = settingsMessage_4
             bot.send_message(tID, text, parse_mode="Markdown")
 
+        elif call.data == "sendMessage":
+            bot.delete_message(tID, call.message.message_id)
+            try:
+                lock.acquire(True)
+                cur.execute(f"select tID, name from users")
+                data = cur.fetchall()
+            finally:
+                lock.release()
+            for a in data:
+                try:
+                    bot.send_message(a[0], allSendMessage, parse_mode="Markdown")
+                except Exception as e:
+                    if "bot was blocked by the user" in str(e):
+                        try:
+                            lock.acquire(True)
+                            cur.execute(f"delete from users where tID = {a[0]}")
+                            db.commit()
+                        finally:
+                            lock.release()
+                        bot.send_message(mainAdminID, serviceMessage_5.format(a[0]))
+            text = serviceMessage_4
+            bot.send_message(mainAdminID, text, parse_mode="Markdown")
+
 #-----------------------------------------------------------------------------------------
 
 @bot.message_handler(commands=['start'])
@@ -247,8 +280,12 @@ def startReply(message):
         text = errorMessage_6
         bot.send_message(tID, text, parse_mode="Markdown")
     else:
-        cur.execute(f"select regFlag, name from users where tID = {tID}")
-        regFlag = cur.fetchall()
+        try:
+            lock.acquire(True)
+            cur.execute(f"select regFlag, name from users where tID = {tID}")
+            regFlag = cur.fetchall()
+        finally:
+            lock.release()
         if len(regFlag) > 0 and regFlag[0][0] == 1:
             text = errorMessage_3.format(regFlag[0][1])
             bot.send_message(tID, text, parse_mode="Markdown")
@@ -262,14 +299,17 @@ def startReply(message):
 def startDchedule(message):
     tID = message.chat.id
     if inDatabase(tID):
-        cur.execute(f"select tID, groupID from users where tID = {tID}")
-        data = cur.fetchall()
+        try:
+            lock.acquire(True)
+            cur.execute(f"select tID, groupID from users where tID = {tID}")
+            data = cur.fetchall()
+        finally:
+            lock.release()
         if data[0][1] == 0:
             markup = types.InlineKeyboardMarkup(row_width=1)
             markup.add(reg_2)
             text = errorMessage_2
-            bot.send_photo(tID, caption=text, reply_markup=markup, parse_mode="Markdown",
-                           photo=open("reg_link.png", "rb"))
+            bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
         else:
             getSchedule(tID)
     else:
@@ -313,65 +353,104 @@ def startFind(message):
         text = errorMessage_5
         bot.send_message(tID, text, parse_mode="Markdown")
 
-@bot.message_handler(commands=['reminders'])
+@bot.message_handler(commands=['dogs'])
 def startFind(message):
     tID = message.chat.id
     if inDatabase(tID):
-        bot.send_message(tID, "Эта функция пока находится в разработке")
+        dog.getDog(directory=f"{mainSource}/cats/", filename=str(tID))
+        bot.send_photo(tID, photo=open(f"{mainSource}/cats/{tID}.jpg", "rb"))
     else:
         text = errorMessage_5
         bot.send_message(tID, text, parse_mode="Markdown")
+
+@bot.message_handler(commands=['message'])
+def startMessage(message):
+    tID = message.chat.id
+    if tID in adminList:
+        text = serviceMessage_2
+        msg = bot.send_message(tID, text, parse_mode="Markdown")
+        bot.register_next_step_handler(msg, sendText)
 
 #-----------------------------------------------------------------------------------------
 
 def inputName(message):
     tID = message.chat.id
     name = message.text.strip()
-    if checkName(name):
-        cur.execute(f"insert into users (tID, name, regFlag, groupID) values ({tID}, \"{name.capitalize()}\", 1, \"0\")")
-        print(f"{tID}/{name} зарегистрирован(а)")
-        db.commit()
+    flag = checkName(name)
+    if flag == 0:
+        try:
+            lock.acquire(True)
+            cur.execute(f"insert into users (tID, name, regFlag, groupID) values ({tID}, \"{name.capitalize()}\", 1, \"0\")")
+            print(f"{tID}/{name} зарегистрирован(а)")
+            db.commit()
+        finally:
+            lock.release()
         text = replyMessage_1.format(name.capitalize())
         bot.send_message(tID, text, parse_mode="Markdown")
         text = startMessage_2
         bot.send_message(tID, text, parse_mode="Markdown")
     else:
-        text = errorMessage_1
+        if flag == 1:
+            text = errorMessage_8
+        elif flag == 2:
+            text = errorMessage_1
+        elif flag == 3:
+            text = errorMessage_7
+        elif flag == 4:
+            text = errorMessage_9
         msg = bot.send_message(tID, text, parse_mode="Markdown")
         bot.register_next_step_handler(msg, inputName)
 
 def addLink(message):
     tID = message.chat.id
-    text = message.text.split(" ")
-    if checkURL(text):
-        cur.execute(f"update users set groupID = \"{scheduleLink.format(text[0], text[1])}\" where tID = {tID}")
-        db.commit()
-        text = replyMessage_3
-        bot.send_message(tID, text, parse_mode="Markdown")
-    else:
+    link = message.text
+    link = link.split("/")
+    try:
+        marker1, marker2 = link[link.index("faculty") + 1], link[link.index("groups") + 1]
+        if checkURL(marker1, marker2):
+            try:
+                lock.acquire(True)
+                cur.execute(f"update users set groupID = \"{scheduleLink.format(marker1, marker2)}\" where tID = {tID}")
+                db.commit()
+            finally:
+                lock.release()
+            text = replyMessage_3
+            bot.send_message(tID, text, parse_mode="Markdown")
+        else:
+            text = errorMessage_4
+            msg = bot.send_message(tID, text, parse_mode="Markdown")
+            bot.register_next_step_handler(msg, addLink)
+    except ValueError:
         text = errorMessage_4
         msg = bot.send_message(tID, text, parse_mode="Markdown")
         bot.register_next_step_handler(msg, addLink)
 
 def getSchedule(tID):
-    cur.execute(f"select groupID from users where tID = {tID}")
-    link = cur.fetchall()[0][0]
+    try:
+        lock.acquire(True)
+        cur.execute(f"select groupID from users where tID = {tID}")
+        link = cur.fetchall()[0][0]
+    finally:
+        lock.release()
     contents = requests.get(link).text
     soup = BeautifulSoup(contents, 'lxml')
     IST = pytz.timezone(timeZone)
-    dateNow = str(datetime.now(IST))[0:10]
-    timeNow_ = int(str(datetime.now(IST))[11:13])
+    dateNow = datetime.now(IST)
+    curDay, curHour = dateNow.day, dateNow.hour
+    curMonth, curYear = dateNow.month, dateNow.year
+    curMin = dateNow.min
+
     schedules = soup.find_all("li", class_="schedule__day")
 
+    schedule = {}
     for a in schedules:
         text = str(a)
         soup = BeautifulSoup(text, 'lxml')
-        date = soup.find("div", class_="schedule__date").text
+        date = soup.find("div", class_="schedule__date").text[0:2]
         curSchedule = soup.find("ul", class_="schedule__lessons")
         soup = BeautifulSoup(str(curSchedule), 'lxml')
         lessons = soup.find_all("li", class_="lesson")
-        flag = 0
-        mainText = ""
+        day = []
         for b in lessons:
             text = str(b)
             soup = BeautifulSoup(text, 'lxml')
@@ -383,84 +462,177 @@ def getSchedule(tID):
             if str(teacherName) == "None":
                 teacherName = "отсутствует"
             else:
-                teacherName = teacherName.text
-            textFlag = ""
-            timeNow = datetime.now(IST)
-            timeStart = timeNow.replace(hour=int(time[0].split(":")[0]), minute=int(time[0].split(":")[1]))
-            timeEnd = timeNow.replace(hour=int(time[1].split(":")[0]), minute=int(time[1].split(":")[1]))
-            if timeStart < timeNow and timeNow < timeEnd and int(date[0:2]) == int(dateNow[-2:]):
-                textFlag = "🟢"
-            elif timeStart > timeNow and int(date[0:2]) == int(dateNow[-2:]):
-                textFlag = "🟠"
-            elif timeNow > timeEnd and int(date[0:2]) == int(dateNow[-2:]):
-                textFlag = "🔴"
-            if timeNow_ > 16:
-                if int(date[0:2]) == int(dateNow[-2:]) + 1:
-                    flag = 1
-                    head = scheduleMessage_1.format(date[0:2], str(dateNow)[-5:-3], str(dateNow)[0:4])
+                teacherName = teacherName
+            lesson = {
+                "time": time,
+                "subject": subName.text,
+                "type": typeName.text,
+                "place": placeName.text,
+                "teacher": teacherName
+            }
+            day.append(lesson)
+        schedule[int(date)] = day
+
+    try:
+        curdaySchedule = schedule[curDay]
+    except KeyError:
+        bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
+        return 0
+
+    endingLastLesson = int(curdaySchedule[-1]["time"][1].split(":")[0])
+    if curHour <= endingLastLesson:
+        message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n\n"
+
+        for a in curdaySchedule:
+            time_ = a['time']
+            start, end = dateNow.replace(hour=int(time_[0].split(":")[0]),
+                                         minute=int(time_[0].split(":")[1])), \
+                         dateNow.replace(hour=int(time_[1].split(":")[0]),
+                                         minute=int(time_[1].split(":")[1]))
+            if dateNow >= start and dateNow < end:
+                sign = "🟢"
+            elif dateNow < start:
+                sign = "🟠"
+            elif dateNow > end:
+                sign = "🔴"
+            else: sign = ""
+            subject = a['subject']
+            type = a['type']
+            place = a['place']
+            teacher = a['teacher']
+            curLessonText = scheduleMessage_3.format(sign, subject, type, place, teacher)
+            message += curLessonText + "\n\n"
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        if int(dateNow.weekday()) + 1 != 6:
+            markup.add(btn_27)
+        bot.send_message(tID, message, parse_mode="Markdown", reply_markup=markup)
+    else:
+        if int(dateNow.weekday()) + 1 == 6:
+            bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
+        else:
+            curdaySchedule = schedule[curDay+1]
+            message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n\n"
+
+            for a in curdaySchedule:
+                time_ = a['time']
+                start, end = dateNow.replace(hour=int(time_[0].split(":")[0]),
+                                             minute=int(time_[0].split(":")[1])), \
+                             dateNow.replace(hour=int(time_[1].split(":")[0]),
+                                             minute=int(time_[1].split(":")[1]))
+                if dateNow >= start and dateNow < end:
+                    sign = "🟢"
+                elif dateNow < start:
+                    sign = "🟠"
+                elif dateNow > end:
+                    sign = "🔴"
                 else:
-                    head = scheduleMessage_2.format(date[0:2], str(dateNow)[-5:-3], str(dateNow)[0:4])
-            else:
-                if int(date[0:2]) == int(dateNow[-2:]):
-                    flag = 1
-                    head = scheduleMessage_1.format(date[0:2], str(dateNow)[-5:-3], str(dateNow)[0:4])
-                else:
-                    head = scheduleMessage_2.format(date[0:2], str(dateNow)[-5:-3], str(dateNow)[0:4])
-            if flag == 1:
-                mainText += f"{textFlag}_{subName.text}_\nТип: *{typeName.text}*\nМесто: *{placeName.text}*\nПреподаватель: *{teacherName}*\n\n"
-        result = head + mainText
-        if flag == 1:
-            bot.send_message(tID, result, parse_mode="Markdown")
+                    sign = ""
+                subject = a['subject']
+                type = a['type']
+                place = a['place']
+                teacher = a['teacher']
+                curLessonText = scheduleMessage_3.format(sign, subject, type, place, teacher)
+                message += curLessonText + "\n\n"
+            bot.send_message(tID, message, parse_mode="Markdown")
+
+
 
 def editName(message):
     tID = message.chat.id
     mID = message.id
     name = message.text.strip()
-    if checkName(name):
-        bot.edit_message_reply_markup(tID, message_id=mID-1, reply_markup=None)
-        cur.execute(f"update users set name = \"{name.capitalize()}\" where tID = {tID}")
-        db.commit()
-        text = replyMessage_8.format(name.capitalize())
+    flag = checkName(name)
+    if flag == 0:
+        try:
+            lock.acquire(True)
+            cur.execute(
+                f"update users set name = \"{name}\" where tID = {tID}")
+            print(f"{tID}/{name} зарегистрирован(а)")
+            db.commit()
+        finally:
+            lock.release()
+        text = replyMessage_1.format(name.capitalize())
+        bot.send_message(tID, text, parse_mode="Markdown")
+        text = startMessage_2
         bot.send_message(tID, text, parse_mode="Markdown")
     else:
-        text = errorMessage_1
+        if flag == 1:
+            text = errorMessage_8
+        elif flag == 2:
+            text = errorMessage_1
+        elif flag == 3:
+            text = errorMessage_7
+        elif flag == 4:
+            text = errorMessage_9
         msg = bot.send_message(tID, text, parse_mode="Markdown")
         bot.register_next_step_handler(msg, editName)
 
 def editLink(message):
     tID = message.chat.id
     mID = message.id
-    text = message.text.split(" ")
-    if checkURL(text):
-        cur.execute(f"update users set groupID = \"{scheduleLink.format(text[0], text[1])}\" where tID = {tID}")
-        db.commit()
-        text = replyMessage_9
-        bot.send_message(tID, text, parse_mode="Markdown")
-    else:
+    link = message.text
+    link = link.split("/")
+    try:
+        marker1, marker2 = link[link.index("faculty") + 1], link[link.index("groups") + 1]
+        if checkURL(marker1, marker2):
+            try:
+                lock.acquire(True)
+                cur.execute(f"update users set groupID = \"{scheduleLink.format(marker1, marker2)}\" where tID = {tID}")
+                db.commit()
+            finally:
+                lock.release()
+            text = replyMessage_9
+            bot.send_message(tID, text, parse_mode="Markdown")
+        else:
+            text = errorMessage_4
+            msg = bot.send_message(tID, text, parse_mode="Markdown")
+            bot.register_next_step_handler(msg, editLink)
+    except ValueError:
         text = errorMessage_4
         msg = bot.send_message(tID, text, parse_mode="Markdown")
-        bot.register_next_step_handler(msg, editLink)
+        bot.register_next_step_handler(msg, addLink)
 
 def checkName(name):
     count = 0
     for a in name:
         if a.upper() in alphabet:
             count +=1
-    if count == len(name):
-        return True
-    return False
+    if count == len(name) and len(name) < 26 and len(name) > 1 and len(name.split(" ")) == 1:
+        return 0
+    elif count != len(name):
+        return 1
+    elif len(name) > 25:
+        return 2
+    elif len(name) < 2:
+        return 3
+    elif len(name.split(" ")) > 1:
+        return 4
 
-def checkURL(url):
-    response = requests.get(scheduleLink.format(url[0], url[1]))
+def checkURL(m1,m2):
+    response = requests.get(scheduleLink.format(m1, m2))
     if int(response.status_code) == 200:
         return True
     return False
 
 def inDatabase(tID):
-    cur.execute(f"select regFlag from users where tID = {tID}")
-    flag = cur.fetchall()
+    try:
+        lock.acquire(True)
+        cur.execute(f"select regFlag from users where tID = {tID}")
+        flag = cur.fetchall()
+    finally:
+        lock.release()
     if len(flag) == 0:
         return False
     return True
+
+def sendText(message):
+    global allSendMessage
+    tID = message.chat.id
+    inputText = message.text.strip()
+    allSendMessage = inputText
+    text = serviceMessage_3.format(inputText)
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    markup.add(btn_34, btn_11)
+    bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
 
 bot.polling(none_stop=True)
