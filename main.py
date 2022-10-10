@@ -389,7 +389,7 @@ def inputName(message):
         try:
             lock.acquire(True)
             cur.execute(f"insert into users (tID, name, regFlag, groupID) values ({tID}, \"{name.capitalize()}\", 1, \"0\")")
-            print(f"{tID}/{name} зарегистрирован(а)")
+            print(datetime.now(IST).ctime(), f"{tID}/{name} зарегистрирован(а)")
             db.commit()
         finally:
             lock.release()
@@ -485,7 +485,7 @@ def getSchedule(tID):
         schedule[int(date)] = day
 
     try:
-        print(tID,  schedule)
+        print(datetime.now(IST).ctime(), tID,  schedule)
         curdaySchedule = schedule[curDay]
     except KeyError:
         if int(dateNow.weekday()) + 1 == 6:
