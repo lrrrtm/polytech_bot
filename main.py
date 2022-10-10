@@ -63,157 +63,157 @@ def callback(call):
         elif call.data == "map_1":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[1][0], longitude=location[1][1])
-            text = replyMessage_6.format(places["main"])
+            text = replyMessage_6.format(places["main"], address["main"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_2":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[2][0], longitude=location[2][1])
-            text = replyMessage_6.format(places["chem"])
+            text = replyMessage_6.format(places["chem"], address["chem"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_3":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[3][0], longitude=location[3][1])
-            text = replyMessage_6.format(places["mech"])
+            text = replyMessage_6.format(places["mech"], address["mech"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_4":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[4][0], longitude=location[4][1])
-            text = replyMessage_6.format(places["hydro_1"])
+            text = replyMessage_6.format(places["hydro_1"], address["hydro_1"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_5":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[5][0], longitude=location[5][1])
-            text = replyMessage_6.format(places["hydro_2"])
+            text = replyMessage_6.format(places["hydro_2"], address["hydro_2"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_6":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[6][0], longitude=location[6][1])
-            text = replyMessage_6.format(places["nik"])
+            text = replyMessage_6.format(places["nik"], address["nik"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_7":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[7][0], longitude=location[7][1])
-            text = replyMessage_6.format(places["stud_1"])
+            text = replyMessage_6.format(places["stud_1"], address["stud_1"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_8":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[8][0], longitude=location[8][1])
-            text = replyMessage_6.format(places["stud_2"])
+            text = replyMessage_6.format(places["stud_2"], address["stud_2"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_9":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[9][0], longitude=location[9][1])
-            text = replyMessage_6.format(places["stud_3"])
+            text = replyMessage_6.format(places["stud_3"], address["stud_3"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_10":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[10][0], longitude=location[10][1])
-            text = replyMessage_6.format(places["stud_4"])
+            text = replyMessage_6.format(places["stud_4"], address["stud_4"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_11":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[11][0], longitude=location[11][1])
-            text = replyMessage_6.format(places["stud_5"])
+            text = replyMessage_6.format(places["stud_5"], address["stud_5"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_12":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[12][0], longitude=location[12][1])
-            text = replyMessage_6.format(places["stud_6"])
+            text = replyMessage_6.format(places["stud_6"], address["stud_6"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_13":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[13][0], longitude=location[13][1])
-            text = replyMessage_6.format(places["stud_9"])
+            text = replyMessage_6.format(places["stud_9"], address["stud_9"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_14":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[14][0], longitude=location[14][1])
-            text = replyMessage_6.format(places["stud_10"])
+            text = replyMessage_6.format(places["stud_10"], address["stud_10"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_15":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[15][0], longitude=location[15][1])
-            text = replyMessage_6.format(places["stud_11"])
+            text = replyMessage_6.format(places["stud_11"], address["stud_11"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_16":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[16][0], longitude=location[16][1])
-            text = replyMessage_6.format(places["stud_15"])
+            text = replyMessage_6.format(places["stud_15"], address["stud_15"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_17":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[17][0], longitude=location[17][1])
-            text = replyMessage_6.format(places["stud_16"])
+            text = replyMessage_6.format(places["stud_16"], address["stud_16"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_18":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[18][0], longitude=location[18][1])
-            text = replyMessage_6.format(places["sport"])
+            text = replyMessage_6.format(places["sport"], address["sport"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_19":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[19][0], longitude=location[19][1])
-            text = replyMessage_6.format(places["lab"])
+            text = replyMessage_6.format(places["lab"], address["lab"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_20":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[20][0], longitude=location[20][1])
-            text = replyMessage_6.format(places["hydro_3"])
+            text = replyMessage_6.format(places["hydro_3"], address["hydro_3"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_21":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[21][0], longitude=location[21][1])
-            text = replyMessage_6.format(places["ran"])
+            text = replyMessage_6.format(places["ran"], address["ran"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_22":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[22][0], longitude=location[22][1])
-            text = replyMessage_6.format(places["prof_1"])
+            text = replyMessage_6.format(places["prof_1"], address["prof_1"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_23":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[23][0], longitude=location[23][1])
-            text = replyMessage_6.format(places["prof_2"])
+            text = replyMessage_6.format(places["prof_2"], address["prof_2"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_24":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[24][0], longitude=location[24][1])
-            text = replyMessage_6.format(places["teach_house"])
+            text = replyMessage_6.format(places["teach_house"], address["teach_house"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_25":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[25][0], longitude=location[25][1])
-            text = replyMessage_6.format(places["abit"])
+            text = replyMessage_6.format(places["abit"], address["abit"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "map_26":
             bot.delete_message(tID, call.message.message_id)
             bot.send_location(tID, latitude=location[26][0], longitude=location[26][1])
-            text = replyMessage_6.format(places["ipm"])
+            text = replyMessage_6.format(places["ipm"], address["ipm"])
             bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "settings_name":
@@ -500,13 +500,13 @@ def getSchedule(tID):
         if int(dateNow.weekday()) + 1 == 6:
             bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
         else:
-            bot.send_message(tID, "Произошла ошибка при обновлении расписания или расписание для твоей группы ещё не добавлено."
-                                  "\nОткрой /settings и выбери пункт \"Изменить номер группы\"")
+            text = errorMessage_10
+            bot.send_message(tID, text)
         return 0
 
     endingLastLesson = int(curdaySchedule[-1]["time"][1].split(":")[0])
     if curHour <= endingLastLesson:
-        message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n\n"
+        message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n"
 
         for a in curdaySchedule:
             time_ = a['time']
@@ -539,8 +539,9 @@ def getSchedule(tID):
             try:
                 curdaySchedule = schedule[curDay+1]
             except KeyError:
-                bot.send_message(tID, "Занятий на завтрашний день нет")
-            message = "*Сегодняшние занятия закончились*\n" + scheduleMessage_1.format(int(curDay)+1, curMonth, curYear) + "\n\n"
+                text = scheduleMessage_5
+                bot.send_message(tID, text, parse_mode="Markdown")
+            message = "*Сегодняшние занятия закончились*\n" + scheduleMessage_1.format(int(curDay)+1, curMonth, curYear) + "\n"
 
             for a in curdaySchedule:
                 time_ = a['time']
