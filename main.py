@@ -379,6 +379,9 @@ def startCats(message):
         text = errorMessage_5
         bot.send_message(tID, text, parse_mode="Markdown")
 
+@bot.message_handler(commands=['stat'])
+def startStat(message):
+    tID =
 
 #-----------------------------------------------------------------------------------------
 
@@ -416,10 +419,6 @@ def addLink(message):
     link = link.split("/")
     try:
         marker1, marker2 = link[link.index("faculty") + 1], link[link.index("groups") + 1]
-        try:
-            marker2 = marker2[0:str(marker2).find("?")]
-        except:
-            pass
         if checkURL(marker1, marker2):
             try:
                 lock.acquire(True)
@@ -494,7 +493,7 @@ def getSchedule(tID):
         if int(dateNow.weekday()) + 1 == 6:
             bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
         else:
-            bot.send_message(tID, "Мы обновляем раписание на сегодняшний день, нужно немного подождать")
+            bot.send_message(tID, "Произошла ошибка при обновлении расписания. Открой /settings и выбери пункт \"Изменить номер группы\"")
         return 0
 
     endingLastLesson = int(curdaySchedule[-1]["time"][1].split(":")[0])
@@ -590,10 +589,6 @@ def editLink(message):
     link = link.split("/")
     try:
         marker1, marker2 = link[link.index("faculty") + 1], link[link.index("groups") + 1]
-        try:
-            marker2 = marker2[0:str(marker2).find("?")]
-        except:
-            pass
         if checkURL(marker1, marker2):
             try:
                 lock.acquire(True)
@@ -604,12 +599,10 @@ def editLink(message):
             text = replyMessage_9
             bot.send_message(tID, text, parse_mode="Markdown")
         else:
-            print("Ошибка при редактировании ссылки")
             text = errorMessage_4
             msg = bot.send_message(tID, text, parse_mode="Markdown")
             bot.register_next_step_handler(msg, editLink)
     except ValueError as e:
-        print("Ошибка при редактировании ссылки: ", str(e))
         text = errorMessage_4
         msg = bot.send_message(tID, text, parse_mode="Markdown")
         bot.register_next_step_handler(msg, addLink)
@@ -635,8 +628,7 @@ def checkURL(m1,m2):
     if int(response.status_code) == 200:
         return True
     else:
-        print(response, response.status_code)
-        return True
+        return False
 
 def inDatabase(tID):
     try:
