@@ -634,7 +634,9 @@ def checkURL(m1,m2):
     response = requests.get(scheduleLink.format(m1, m2))
     if int(response.status_code) == 200:
         return True
-    return False
+    else:
+        print(response, response.status_code)
+        return False
 
 def inDatabase(tID):
     try:
