@@ -415,6 +415,8 @@ def addLink(message):
     link = link.split("/")
     try:
         marker1, marker2 = link[link.index("faculty") + 1], link[link.index("groups") + 1]
+        if "?" in marker2:
+            marker2 = marker2[0:5]
         if checkURL(marker1, marker2):
             try:
                 lock.acquire(True)
@@ -585,6 +587,8 @@ def editLink(message):
     link = link.split("/")
     try:
         marker1, marker2 = link[link.index("faculty") + 1], link[link.index("groups") + 1]
+        if "?" in marker2:
+            marker2 = marker2[0:5]
         if checkURL(marker1, marker2):
             try:
                 lock.acquire(True)
