@@ -436,6 +436,7 @@ def addLink(message):
         bot.register_next_step_handler(msg, addLink)
 
 def getSchedule(tID):
+    global dateNow, dateNow
     try:
         lock.acquire(True)
         cur.execute(f"select groupID from users where tID = {tID}")
@@ -469,6 +470,7 @@ def getSchedule(tID):
             placeName = soup.find("div", class_="lesson__places")
             teacherName = soup.find("div", class_="lesson__teachers")
             typeName = soup.find("div", class_="lesson__type")
+            dayNum = soup.find("div", class_="schedule__date")
             time = soup.find("span", class_="lesson__time").text.split("-")
             if str(teacherName) == "None":
                 teacherName = "Несколько преподавателей/преподаватель отсутствует"
@@ -479,13 +481,14 @@ def getSchedule(tID):
                 "subject": subName.text,
                 "type": typeName.text,
                 "place": placeName.text,
-                "teacher": teacherName
+                "teacher": teacherName,
+                "day": dayNum,
             }
             day.append(lesson)
         schedule[int(date)] = day
 
     try:
-        print(datetime.now(IST).ctime(), tID,  "getSchedule")
+        print(datetime.now(IST).ctime(), tID, "getSchedule")
         curdaySchedule = schedule[curDay]
     except KeyError:
         if int(dateNow.weekday()) + 1 == 6:
@@ -527,7 +530,7 @@ def getSchedule(tID):
             bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
         else:
             curdaySchedule = schedule[curDay+1]
-            message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n\n"
+            message = "*Сегодняшние занятия закончились*\n" + scheduleMessage_1.format(int(curDay)+1, curMonth, curYear) + "\n\n"
 
             for a in curdaySchedule:
                 time_ = a['time']
@@ -535,7 +538,8 @@ def getSchedule(tID):
                                              minute=int(time_[0].split(":")[1])), \
                              dateNow.replace(hour=int(time_[1].split(":")[0]),
                                              minute=int(time_[1].split(":")[1]))
-                if dateNow >= start and dateNow < end:
+                lessonDay = a['day']
+                if dateNow >= start and dateNow < end and int(curDay) == int(lessonDay):
                     sign = "🟢"
                 elif dateNow < start:
                     sign = "🟠"
