@@ -485,7 +485,7 @@ def getSchedule(tID):
         schedule[int(date)] = day
 
     try:
-        print(datetime.now(IST).ctime(), tID,  schedule)
+        print(datetime.now(IST).ctime(), tID,  "getSchedule")
         curdaySchedule = schedule[curDay]
     except KeyError:
         if int(dateNow.weekday()) + 1 == 6:
