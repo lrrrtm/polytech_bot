@@ -483,7 +483,7 @@ def getSchedule(tID):
         schedule[int(date)] = day
 
     try:
-        print(tID, schedule)
+        print(tID,  schedule)
         curdaySchedule = schedule[curDay]
     except KeyError:
         if int(dateNow.weekday()) + 1 == 6:
