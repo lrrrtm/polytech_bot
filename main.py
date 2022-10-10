@@ -636,7 +636,7 @@ def checkURL(m1,m2):
         return True
     else:
         print(response, response.status_code)
-        return False
+        return True
 
 def inDatabase(tID):
     try:
