@@ -544,10 +544,6 @@ def getSchedule(tID):
 
             for a in curdaySchedule:
                 time_ = a['time']
-                start, end = dateNow.replace(hour=int(time_[0].split(":")[0]),
-                                             minute=int(time_[0].split(":")[1])), \
-                             dateNow.replace(hour=int(time_[1].split(":")[0]),
-                                             minute=int(time_[1].split(":")[1]))
                 sign = ""
                 subject = a['subject']
                 type = a['type']
@@ -561,7 +557,6 @@ def getSchedule(tID):
 
 def editName(message):
     tID = message.chat.id
-    mID = message.id
     name = message.text.strip()
     flag = checkName(name)
     if flag == 0:
