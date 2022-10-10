@@ -482,7 +482,7 @@ def getSchedule(tID):
             if str(teacherName) == "None":
                 teacherName = "Несколько преподавателей/преподаватель отсутствует"
             else:
-                teacherName = teacherName.text
+                teacherName = teacherName.text.strip()
             lesson = {
                 "time": time,
                 "subject": subName.text,
@@ -500,7 +500,8 @@ def getSchedule(tID):
         if int(dateNow.weekday()) + 1 == 6:
             bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
         else:
-            bot.send_message(tID, "Произошла ошибка при обновлении расписания. Открой /settings и выбери пункт \"Изменить номер группы\"")
+            bot.send_message(tID, "Произошла ошибка при обновлении расписания или расписание для твоей группы ещё не добавлено."
+                                  "\nОткрой /settings и выбери пункт \"Изменить номер группы\"")
         return 0
 
     endingLastLesson = int(curdaySchedule[-1]["time"][1].split(":")[0])
@@ -535,7 +536,10 @@ def getSchedule(tID):
         if int(dateNow.weekday()) + 1 == 6:
             bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
         else:
-            curdaySchedule = schedule[curDay+1]
+            try:
+                curdaySchedule = schedule[curDay+1]
+            except KeyError:
+                bot.send_message(tID, "Занятий на завтрашний день нет")
             message = "*Сегодняшние занятия закончились*\n" + scheduleMessage_1.format(int(curDay)+1, curMonth, curYear) + "\n\n"
 
             for a in curdaySchedule:
