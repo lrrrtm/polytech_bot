@@ -379,10 +379,6 @@ def startCats(message):
         text = errorMessage_5
         bot.send_message(tID, text, parse_mode="Markdown")
 
-@bot.message_handler(commands=['stat'])
-def startStat(message):
-    tID =
-
 #-----------------------------------------------------------------------------------------
 
 def inputName(message):
