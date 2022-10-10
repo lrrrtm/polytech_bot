@@ -604,10 +604,12 @@ def editLink(message):
             text = replyMessage_9
             bot.send_message(tID, text, parse_mode="Markdown")
         else:
+            print("Ошибка при редактировании ссылки")
             text = errorMessage_4
             msg = bot.send_message(tID, text, parse_mode="Markdown")
             bot.register_next_step_handler(msg, editLink)
-    except ValueError:
+    except ValueError as e:
+        print("Ошибка при редактировании ссылки: ", str(e))
         text = errorMessage_4
         msg = bot.send_message(tID, text, parse_mode="Markdown")
         bot.register_next_step_handler(msg, addLink)
