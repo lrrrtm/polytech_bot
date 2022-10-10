@@ -353,7 +353,7 @@ def startFind(message):
         bot.send_message(tID, text, parse_mode="Markdown")
 
 @bot.message_handler(commands=['dogs'])
-def startFind(message):
+def startDogs(message):
     tID = message.chat.id
     if inDatabase(tID):
         dog.getDog(directory=f"{mainSource}/cats/", filename=str(tID))
@@ -378,7 +378,16 @@ def startCats(message):
     else:
         text = errorMessage_5
         bot.send_message(tID, text, parse_mode="Markdown")
+'''
+@bot.message_handler(commands=['cats'])
+def startCats(message):
+    tID = message.chat.id
+    text = scheduleMessage_4
+    markup = types.InlineKeyboardMarkup(row_width=1)
 
+    msg = bot.send_message(tID, text)
+    bot.register_next_step_handler(msg, otherSchedule)
+'''
 #-----------------------------------------------------------------------------------------
 
 def inputName(message):
@@ -660,5 +669,14 @@ def getCat(tID):
         f.close()
 
     bot.send_photo(tID, open(f"{mainSource}/cats/{tID}.jpg",'rb'))
-
+'''
+def otherSchedule(message):
+    tID = message.chat.id
+    marker1, marker2 = message.text.split("/")[0], message.text.split("/")[1]
+    if checkOtherUrl(marker1, marker2)
+    else:
+        text = errorMessage_4
+        msg = bot.send_message(tID, text)
+        bot.register_next_step_handler(msg, otherSchedule)
+'''
 bot.polling(none_stop=True)
