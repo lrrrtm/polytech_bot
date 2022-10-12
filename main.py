@@ -270,6 +270,19 @@ def callback(call):
             text = serviceMessage_4
             bot.send_message(mainAdminID, text, parse_mode="Markdown")
 
+        elif call.data == "settings_restart":
+            bot.delete_message(tID, call.message.message_id)
+            try:
+                lock.acquire(True)
+                cur.execute(f"delete from users where tID = {tID}")
+                db.commit()
+            except Exception:
+                text = errorMessage_5
+                bot.send_message(tID, text, parse_mode="Markdown")
+            finally:
+                lock.release()
+                startReply(call.message)
+
 #-----------------------------------------------------------------------------------------
 
 @bot.message_handler(commands=['start'])
@@ -388,6 +401,21 @@ def startCats(message):
     msg = bot.send_message(tID, text)
     bot.register_next_step_handler(msg, otherSchedule)
 '''
+
+@bot.message_handler(commands=['restart'])
+def startRestart(message):
+    tID = message.chat.id
+    try:
+        lock.acquire(True)
+        cur.execute(f"delete from users where tID = {tID}")
+        db.commit()
+    except Exception:
+        text = errorMessage_5
+        bot.send_message(tID, text, parse_mode="Markdown")
+    finally:
+        lock.release()
+        startReply(message)
+
 #-----------------------------------------------------------------------------------------
 
 def inputName(message):
@@ -458,8 +486,6 @@ def getSchedule(tID):
     curMin = dateNow.min
     contents = requests.get(str(link) + f"?date={curYear}-{curMonth}-{curDay}").text
     soup = BeautifulSoup(contents, 'lxml')
-
-
     schedules = soup.find_all("li", class_="schedule__day")
 
     schedule = {}
@@ -529,7 +555,7 @@ def getSchedule(tID):
             message += curLessonText + "\n\n"
         markup = types.InlineKeyboardMarkup(row_width=1)
         if int(dateNow.weekday()) + 1 != 6:
-            #markup.add(btn_27)
+            markup.add(btn_27)
             pass
         bot.send_message(tID, message, parse_mode="Markdown", reply_markup=markup)
     else:
@@ -541,7 +567,7 @@ def getSchedule(tID):
             except KeyError:
                 text = scheduleMessage_5
                 bot.send_message(tID, text, parse_mode="Markdown")
-            message = "*Сегодняшние занятия закончились*\n" + scheduleMessage_1.format(int(curDay)+1, curMonth, curYear) + "\n"
+            message = "*Занятия на сегодня закончились*\n" + scheduleMessage_1.format(int(curDay)+1, curMonth, curYear) + "\n"
 
             for a in curdaySchedule:
                 time_ = a['time']

@@ -43,8 +43,8 @@ btn_20 = types.InlineKeyboardButton("Изменить номер группы �
 btn_21 = types.InlineKeyboardButton("Служба поддержки 📢", callback_data="settings_help")
 btn_22 = types.InlineKeyboardButton("О боте ℹ", callback_data="settings_about")
 
-btn_23 = types.InlineKeyboardButton("Предложить идею", url="https://forms.gle/DWPkHUrd3JGEhd8j8")
-btn_24 = types.InlineKeyboardButton("", callback_data="")
+btn_23 = types.InlineKeyboardButton("Предложить идею ❗", url="https://forms.gle/DWPkHUrd3JGEhd8j8")
+btn_24 = types.InlineKeyboardButton("Настроить заново ♻", callback_data="settings_restart")
 btn_25 = types.InlineKeyboardButton("", callback_data="")
 btn_26 = types.InlineKeyboardButton("", callback_data="")
 
