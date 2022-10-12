@@ -284,6 +284,10 @@ def callback(call):
                 lock.release()
                 startReply(call.message)
 
+        elif call.data == "schedule_nextd":
+            bot.delete_message(tID, call.message.message_id)
+            getSchedule(tID, 1)
+
 #-----------------------------------------------------------------------------------------
 
 @bot.message_handler(commands=['start'])
@@ -324,7 +328,7 @@ def startDchedule(message):
             text = errorMessage_2
             bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
         else:
-            getSchedule(tID)
+            getSchedule(tID, 0)
     else:
         text = errorMessage_5
         bot.send_message(tID, text, parse_mode="Markdown")
@@ -481,7 +485,7 @@ def addLink(message):
         msg = bot.send_message(tID, text, parse_mode="Markdown")
         bot.register_next_step_handler(msg, addLink)
 
-def getSchedule(tID):
+def getSchedule(tID, dayFlag):
     try:
         lock.acquire(True)
         cur.execute(f"select groupID from users where tID = {tID}")
@@ -530,7 +534,10 @@ def getSchedule(tID):
 
     try:
         print(datetime.now(IST).ctime(), tID, "getSchedule")
-        curdaySchedule = schedule[curDay]
+        if dayFlag == 1:
+            curdaySchedule = schedule[curDay+1]
+        elif dayFlag == 0:
+            curdaySchedule = schedule[curDay]
     except KeyError:
         if int(dateNow.weekday()) + 1 == 6:
             bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
@@ -563,9 +570,8 @@ def getSchedule(tID):
             curLessonText = scheduleMessage_3.format(sign, subject, type, place, teacher)
             message += curLessonText + "\n\n"
         markup = types.InlineKeyboardMarkup(row_width=1)
-        if int(dateNow.weekday()) + 1 != 6:
+        if int(dateNow.weekday()) + 1 != 6 and dayFlag == 0:
             markup.add(btn_27)
-            pass
         bot.send_message(tID, message, parse_mode="Markdown", reply_markup=markup)
     else:
         if int(dateNow.weekday()) + 1 == 6:
