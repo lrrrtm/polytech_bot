@@ -555,7 +555,7 @@ def getSchedule(tID):
             message += curLessonText + "\n\n"
         markup = types.InlineKeyboardMarkup(row_width=1)
         if int(dateNow.weekday()) + 1 != 6:
-            markup.add(btn_27)
+            #markup.add(btn_27)
             pass
         bot.send_message(tID, message, parse_mode="Markdown", reply_markup=markup)
     else:
