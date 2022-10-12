@@ -349,7 +349,7 @@ def startSettings(message):
     tID = message.chat.id
     if inDatabase(tID):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        markup.add(btn_19, btn_20, btn_21, btn_22, btn_23)
+        markup.add(btn_19, btn_20, btn_21, btn_22, btn_23, btn_24)
         text = replyMessage_7
         bot.send_message(tID, text, parse_mode="Markdown", reply_markup=markup)
     else:
