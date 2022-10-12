@@ -549,7 +549,8 @@ def getSchedule(tID, dayFlag):
 
     endingLastLesson = int(curdaySchedule[-1]["time"][1].split(":")[0])
     if curHour <= endingLastLesson:
-        message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n"
+        if dayFlag == 1: message = scheduleMessage_1.format(curDay+1, curMonth, curYear) + "\n"
+        else: message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n"
 
         for a in curdaySchedule:
             time_ = a['time']
