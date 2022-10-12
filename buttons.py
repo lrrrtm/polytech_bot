@@ -2,7 +2,6 @@ from telebot import types
 from config import *
 
 #НАСТРОЙКИ БОТА
-key = ""
 
 
 #РЕГИСТРАЦИЯ

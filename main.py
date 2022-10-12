@@ -19,6 +19,7 @@ from bs4 import BeautifulSoup
 from docxtpl import DocxTemplate
 
 #ИНИЦИАЛИЗАЦИЯ
+key = "5761336221:AAEiDuuhrVTfUOUZgWYUfd1Y6kyEb2ZBth4"
 bot = telebot.TeleBot(key)
 db = sqlite3.connect(f"{mainSource}{dbName}", check_same_thread=False)
 cur = db.cursor()
@@ -422,7 +423,15 @@ def inputName(message):
     tID = message.chat.id
     name = message.text.strip()
     flag = checkName(name)
-    if flag == 0:
+    flagCheckReg = 0
+    try:
+        lock.acquire(True)
+        cur.execute(f"select tID from users where tID = {tID}")
+        if len(cur.fetchall()) > 0:
+            flagCheckReg = 1
+    finally:
+        lock.release()
+    if flag == 0 and flagCheckReg == 0:
         try:
             lock.acquire(True)
             cur.execute(f"insert into users (tID, name, regFlag, groupID) values ({tID}, \"{name.capitalize()}\", 1, \"0\")")
