@@ -19,7 +19,6 @@ from bs4 import BeautifulSoup
 from docxtpl import DocxTemplate
 
 #ИНИЦИАЛИЗАЦИЯ
-key = "5761336221:AAEiDuuhrVTfUOUZgWYUfd1Y6kyEb2ZBth4"
 bot = telebot.TeleBot(key)
 db = sqlite3.connect(f"{mainSource}{dbName}", check_same_thread=False)
 cur = db.cursor()
@@ -284,10 +283,6 @@ def callback(call):
                 lock.release()
                 startReply(call.message)
 
-        elif call.data == "schedule_nextd":
-            bot.delete_message(tID, call.message.message_id)
-            getSchedule(tID, 1)
-
 #-----------------------------------------------------------------------------------------
 
 @bot.message_handler(commands=['start'])
@@ -328,7 +323,7 @@ def startDchedule(message):
             text = errorMessage_2
             bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
         else:
-            getSchedule(tID, 0)
+            getSchedule(tID)
     else:
         text = errorMessage_5
         bot.send_message(tID, text, parse_mode="Markdown")
@@ -354,7 +349,7 @@ def startSettings(message):
     tID = message.chat.id
     if inDatabase(tID):
         markup = types.InlineKeyboardMarkup(row_width=1)
-        markup.add(btn_19, btn_20, btn_21, btn_22, btn_23, btn_24)
+        markup.add(btn_19, btn_20, btn_21, btn_22, btn_23)
         text = replyMessage_7
         bot.send_message(tID, text, parse_mode="Markdown", reply_markup=markup)
     else:
@@ -427,15 +422,7 @@ def inputName(message):
     tID = message.chat.id
     name = message.text.strip()
     flag = checkName(name)
-    flagCheckReg = 0
-    try:
-        lock.acquire(True)
-        cur.execute(f"select tID from users where tID = {tID}")
-        if len(cur.fetchall()) > 0:
-            flagCheckReg = 1
-    finally:
-        lock.release()
-    if flag == 0 and flagCheckReg == 0:
+    if flag == 0:
         try:
             lock.acquire(True)
             cur.execute(f"insert into users (tID, name, regFlag, groupID) values ({tID}, \"{name.capitalize()}\", 1, \"0\")")
@@ -485,7 +472,7 @@ def addLink(message):
         msg = bot.send_message(tID, text, parse_mode="Markdown")
         bot.register_next_step_handler(msg, addLink)
 
-def getSchedule(tID, dayFlag):
+def getSchedule(tID):
     try:
         lock.acquire(True)
         cur.execute(f"select groupID from users where tID = {tID}")
@@ -523,7 +510,6 @@ def getSchedule(tID, dayFlag):
             else:
                 teacherName = teacherName.text.strip()
             lesson = {
-                "date": int(date),
                 "time": time,
                 "subject": subName.text,
                 "type": typeName.text,
@@ -535,10 +521,7 @@ def getSchedule(tID, dayFlag):
 
     try:
         print(datetime.now(IST).ctime(), tID, "getSchedule")
-        if dayFlag == 1:
-            curdaySchedule = schedule[curDay+1]
-        elif dayFlag == 0:
-            curdaySchedule = schedule[curDay]
+        curdaySchedule = schedule[curDay]
     except KeyError:
         if int(dateNow.weekday()) + 1 == 6:
             bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
@@ -549,8 +532,7 @@ def getSchedule(tID, dayFlag):
 
     endingLastLesson = int(curdaySchedule[-1]["time"][1].split(":")[0])
     if curHour <= endingLastLesson:
-        if dayFlag == 1: message = scheduleMessage_1.format(curDay+1, curMonth, curYear) + "\n"
-        else: message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n"
+        message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n"
 
         for a in curdaySchedule:
             time_ = a['time']
@@ -558,14 +540,12 @@ def getSchedule(tID, dayFlag):
                                          minute=int(time_[0].split(":")[1])), \
                          dateNow.replace(hour=int(time_[1].split(":")[0]),
                                          minute=int(time_[1].split(":")[1]))
-            if curDay == a['date']:
-                if dateNow >= start and dateNow < end:
-                    sign = "🟢"
-                elif dateNow < start:
-                    sign = "🟠"
-                elif dateNow > end:
-                    sign = "🔴"
-                else: sign = ""
+            if dateNow >= start and dateNow < end:
+                sign = "🟢"
+            elif dateNow < start:
+                sign = "🟠"
+            elif dateNow > end:
+                sign = "🔴"
             else: sign = ""
             subject = a['subject']
             type = a['type']
@@ -574,8 +554,9 @@ def getSchedule(tID, dayFlag):
             curLessonText = scheduleMessage_3.format(sign, subject, type, place, teacher)
             message += curLessonText + "\n\n"
         markup = types.InlineKeyboardMarkup(row_width=1)
-        if int(dateNow.weekday()) + 1 != 6 and dayFlag == 0:
+        if int(dateNow.weekday()) + 1 != 6:
             markup.add(btn_27)
+            pass
         bot.send_message(tID, message, parse_mode="Markdown", reply_markup=markup)
     else:
         if int(dateNow.weekday()) + 1 == 6:
