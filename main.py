@@ -557,7 +557,7 @@ def getSchedule(tID, dayFlag):
                                          minute=int(time_[0].split(":")[1])), \
                          dateNow.replace(hour=int(time_[1].split(":")[0]),
                                          minute=int(time_[1].split(":")[1]))
-            if curDay == a['date']
+            if curDay == a['date']:
                 if dateNow >= start and dateNow < end:
                     sign = "🟢"
                 elif dateNow < start:
