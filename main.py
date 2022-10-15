@@ -561,7 +561,7 @@ def getSchedule(tID):
         bot.send_message(tID, message, parse_mode="Markdown", reply_markup=markup)
     else:
         if int(dateNow.weekday()) + 1 == 6:
-            bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
+            bot.send_message(tID, scheduleMessage_2.format(int(curDay)+1, curMonth, curYear), parse_mode="Markdown")
         else:
             try:
                 curdaySchedule = schedule[curDay+1]
