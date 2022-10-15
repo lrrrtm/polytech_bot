@@ -1,3 +1,4 @@
+key = "5307163611:AAEuyYRyxAU7HReIoTzPt1Wl4EZ1O0LFHgA"
 places = {
     "main": "Главное здание",
     "chem": "Химический корпус",
@@ -91,7 +92,8 @@ symbols = "!?.,$&^*#@;-=+"
 
 #ПУТИ
 dbName = "db.db"
-mainSource = "C:\\Users\\test\\Desktop\\polytech_bot\\polytech_bot\\"
+#mainSource = "C:\\Users\\test\\Desktop\\polytech_bot\\polytech_bot\\"
+mainSource = "D:\Education\Pycharm projects\polytech_bot\\"
 #mainSource = "/home/lrrrtm1/"
 
 #-----------------------------------------------------------------------------------------

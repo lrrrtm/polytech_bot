@@ -479,6 +479,7 @@ def getSchedule(tID):
         link = cur.fetchall()[0][0]
     finally:
         lock.release()
+
     IST = pytz.timezone(timeZone)
     dateNow = datetime.now(IST)
     curDay, curHour = dateNow.day, dateNow.hour
@@ -524,7 +525,7 @@ def getSchedule(tID):
         curdaySchedule = schedule[curDay]
     except KeyError:
         if int(dateNow.weekday()) + 1 == 6:
-            bot.send_message(tID, scheduleMessage_2.format(curDay, curMonth, curYear), parse_mode="Markdown")
+            bot.send_message(tID, scheduleMessage_2.format(int(curDay)+1, curMonth, curYear), parse_mode="Markdown")
         else:
             text = errorMessage_10
             bot.send_message(tID, text)
