@@ -79,7 +79,7 @@ map_25 = types.InlineKeyboardButton(f"{places['abit']}", callback_data="map_25")
 map_26 = types.InlineKeyboardButton(f"{places['ipm']}", callback_data="map_26")
 
 #-----------------------------------------------------------------------------------------
-
+#
 #РАСПИСАНИЕ
 btn_27 = types.InlineKeyboardButton("Расписание на завтра", callback_data="schedule_nextd")
 btn_28 = types.InlineKeyboardButton("", callback_data="schedule_nextnextd")

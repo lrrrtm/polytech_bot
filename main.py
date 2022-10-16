@@ -301,7 +301,7 @@ def callback(call):
                 lock.release()
             global scheduleStudentCurrentDate
             scheduleStudentCurrentDate += timedelta(1)
-            #print(scheduleStudentCurrentDate)
+            #p#rint(scheduleStudentCurrentDate)
             gettingData = getSchedule(scheduleStudentCurrentDate, 0, data[0][1])
             match gettingData:
                 case -1:

@@ -103,7 +103,7 @@ adminList = [409801981, ]
 mainAdminID = 409801981
 
 #-----------------------------------------------------------------------------------------
-
+#
 #КОНСТАНТЫ
 scheduleStudentLink = "https://ruz.spbstu.ru/faculty/{0}/groups/{1}?date={2}"
 scheduleTeacherLink = "https://ruz.spbstu.ru/teachers/{0}?date={1}"
