@@ -12,6 +12,7 @@ import itertools
 import pytz
 import xlsxwriter
 import dog
+import time
 
 from datetime import datetime, timedelta
 from datetime import time as dTime
@@ -22,7 +23,6 @@ from docxtpl import DocxTemplate
 bot = telebot.TeleBot(key)
 db = sqlite3.connect(f"{mainSource}{dbName}", check_same_thread=False)
 cur = db.cursor()
-keyboard = telebot.types.ReplyKeyboardMarkup()
 IST = pytz.timezone(timeZone)
 dateNow = str(datetime.now(IST))[0:10]
 timeNow = str(datetime.now(IST))[11:16]
@@ -33,14 +33,10 @@ lock = threading.Lock()
 global allSendMessage
 allSendMessage = ""
 
-global scheduleStudentCurrentDate
-scheduleStudentCurrentDate = datetime.now()
 
 global scheduleTeacherCurrentDate
 scheduleTeacherCurrentDate = datetime.now()
 
-global scheduleTeacherCurrentID
-scheduleTeacherCurrentID = int()
 #-----------------------------------------------------------------------------------------
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -268,6 +264,7 @@ def callback(call):
             for a in data:
                 try:
                     bot.send_message(a[0], allSendMessage, parse_mode="Markdown")
+                    time.sleep(1)
                 except Exception as e:
                     if "bot was blocked by the user" in str(e):
                         try:
@@ -297,11 +294,16 @@ def callback(call):
                 lock.acquire(True)
                 cur.execute(f"select tID, groupID from users where tID = {tID}")
                 data = cur.fetchall()
+                cur.execute(f"select tID, scheduleStudentCurrentDate from users where tID = {tID}")
+                scheduleStudentCurrentDate = cur.fetchall()[0][1]
+                scheduleStudentCurrentDate = datetime.strptime(scheduleStudentCurrentDate, '%Y-%m-%d').date()
+                print(scheduleStudentCurrentDate)
+                scheduleStudentCurrentDate += timedelta(1)
+                cur.execute(f"update users set scheduleStudentCurrentDate = \"{scheduleStudentCurrentDate}\" where tID = {tID}")
+                db.commit()
             finally:
                 lock.release()
-            global scheduleStudentCurrentDate
-            scheduleStudentCurrentDate += timedelta(1)
-            #p#rint(scheduleStudentCurrentDate)
+
             gettingData = getSchedule(scheduleStudentCurrentDate, 0, data[0][1])
             match gettingData:
                 case -1:
@@ -309,6 +311,8 @@ def callback(call):
                     bot.send_message(tID, text, parse_mode="Markdown")
                 case _:
                     text = sendSchedule(tID, gettingData)
+                    keyboard = types.ReplyKeyboardRemove()
+                    keyboard = telebot.types.ReplyKeyboardMarkup()
                     markup = types.InlineKeyboardMarkup(row_width=2)
                     markup.add(btn_17, btn_16)
                     bot.edit_message_text(text=text, chat_id=tID, message_id=mID, reply_markup=markup, parse_mode="Markdown")
@@ -318,10 +322,16 @@ def callback(call):
                 lock.acquire(True)
                 cur.execute(f"select tID, groupID from users where tID = {tID}")
                 data = cur.fetchall()
+                cur.execute(f"select tID, scheduleStudentCurrentDate from users where tID = {tID}")
+                scheduleStudentCurrentDate = cur.fetchall()[0][1]
+                scheduleStudentCurrentDate = datetime.strptime(scheduleStudentCurrentDate, '%Y-%m-%d').date()
+                scheduleStudentCurrentDate -= timedelta(1)
+                cur.execute(
+                    f"update users set scheduleStudentCurrentDate = \"{scheduleStudentCurrentDate}\" where tID = {tID}")
+                db.commit()
             finally:
                 lock.release()
-            scheduleStudentCurrentDate -= timedelta(1)
-            #print(scheduleStudentCurrentDate)
+
             gettingData = getSchedule(scheduleStudentCurrentDate, 0, data[0][1])
             match gettingData:
                 case -1:
@@ -337,21 +347,45 @@ def callback(call):
             global scheduleTeacherCurrentDate
             scheduleTeacherCurrentDate += timedelta(1)
             #print(scheduleStudentCurrentDate)
+            try:
+                lock.acquire(True)
+                cur.execute(f"select tID, scheduleTeacherCurrentID from users where tID = {tID}")
+                scheduleTeacherCurrentID = cur.fetchall()[0][1]
+                cur.execute(f"select tID, scheduleTeacherCurrentDate from users where tID = {tID}")
+                scheduleTeacherCurrentDate = cur.fetchall()[0][1]
+                scheduleTeacherCurrentDate = datetime.strptime(scheduleTeacherCurrentDate, '%Y-%m-%d').date()
+                scheduleTeacherCurrentDate += timedelta(1)
+                cur.execute(
+                    f"update users set scheduleTeacherCurrentDate = \"{scheduleTeacherCurrentDate}\" where tID = {tID}")
+                db.commit()
+            finally:
+                lock.release()
             gettingData = getSchedule(scheduleTeacherCurrentDate, 1, scheduleTeacherCurrentID)
             match gettingData:
                 case -1:
                     text = errorMessage_11
                     bot.send_message(tID, text, parse_mode="Markdown")
-                    print("1111")
+                    #print("1111")
                 case _:
                     text = sendSchedule(tID, gettingData)
                     markup = types.InlineKeyboardMarkup(row_width=2)
-                    markup.add(btn_17, btn_16)
+                    markup.add(btn_35, btn_18)
                     bot.edit_message_text(text=text, chat_id=tID, message_id=mID, reply_markup=markup, parse_mode="Markdown")
 
         elif call.data == "nav_back_teacher":
-            scheduleTeacherCurrentDate -= timedelta(1)
-            #print(scheduleStudentCurrentDate)
+            try:
+                lock.acquire(True)
+                cur.execute(f"select tID, scheduleTeacherCurrentID from users where tID = {tID}")
+                scheduleTeacherCurrentID = cur.fetchall()[0][1]
+                cur.execute(f"select tID, scheduleTeacherCurrentDate from users where tID = {tID}")
+                scheduleTeacherCurrentDate = cur.fetchall()[0][1]
+                scheduleTeacherCurrentDate = datetime.strptime(scheduleTeacherCurrentDate, '%Y-%m-%d').date()
+                scheduleTeacherCurrentDate -= timedelta(1)
+                cur.execute(
+                    f"update users set scheduleTeacherCurrentDate = \"{scheduleTeacherCurrentDate}\" where tID = {tID}")
+                db.commit()
+            finally:
+                lock.release()
             gettingData = getSchedule(scheduleTeacherCurrentDate, 1, scheduleTeacherCurrentID)
             match gettingData:
                 case -1:
@@ -360,7 +394,7 @@ def callback(call):
                 case _:
                     text = sendSchedule(tID, gettingData)
                     markup = types.InlineKeyboardMarkup(row_width=2)
-                    markup.add(btn_17, btn_16)
+                    markup.add(btn_35, btn_18)
                     bot.edit_message_text(text=text, chat_id=tID, message_id=mID, reply_markup=markup, parse_mode="Markdown")
 
 #-----------------------------------------------------------------------------------------
@@ -390,8 +424,10 @@ def startReply(message):
 
 @bot.message_handler(commands=['schedule'])
 def startDchedule(message):
-    types.ReplyKeyboardRemove()
+    keyboard = types.ReplyKeyboardRemove()
+    keyboard = telebot.types.ReplyKeyboardMarkup()
     tID = message.chat.id
+    print(datetime.now(IST).ctime(), f"{tID}/getSchedule()")
     if inDatabase(tID):
         try:
             lock.acquire(True)
@@ -423,6 +459,7 @@ def startDchedule(message):
 @bot.message_handler(commands=['tschedule'])
 def startTeacherSchedule(message):
     tID = message.chat.id
+    print(datetime.now(IST).ctime(), f"{tID}/getTeacherSchedule()")
     keyboard = telebot.types.ReplyKeyboardMarkup()
     markup = telebot.types.InlineKeyboardMarkup(row_width=1)
     markup.add(btn_11)
@@ -528,8 +565,12 @@ def startCheckText(message):
     if "(" in localText and ")" in localText:
         bot.delete_message(tID, message_id=message.id-1)
         teacherID = localText[localText.find("(")+1:localText.find(")")]
-        global scheduleTeacherCurrentID
-        scheduleTeacherCurrentID = int(teacherID)
+        try:
+            lock.acquire(True)
+            cur.execute(f"update users set scheduleTeacherCurrentID = {int(teacherID)} where tID = {tID}")
+            db.commit()
+        finally:
+            lock.release()
         gettingData = getSchedule(currentDate, 1 , teacherID)
         match gettingData:
             case -1:
@@ -714,7 +755,11 @@ def getCat(tID):
 
 def getSchedule(inputDate, type, groupID):
     outputData = []
-    localDate, localTime = inputDate.date(), inputDate.time()
+    try:
+        localDate, localTime = inputDate.date(), inputDate.time()
+    except AttributeError:
+        localDate = inputDate
+    #print(localDate)
     requestLink = ""
     match type:
         case 0: #Студент
@@ -776,15 +821,26 @@ def getSchedule(inputDate, type, groupID):
             return [outputData, localDate, type]
 
         case 404:
-            print(requestLink)
+            #print(requestLink)
             return -1
 
 
 def sendSchedule(tID, inputData):
+    keyboard = types.ReplyKeyboardRemove()
+    keyboard = telebot.types.ReplyKeyboardMarkup()
     schedule, scheduleDate, type = inputData[0], inputData[1], inputData[2]
     match type:
         case 0:
-            scheduleStudentCurrentDate = scheduleDate
+            try:
+                lock.acquire(True)
+                try:
+                    scheduleDate = datetime.strptime(str(scheduleDate), '%Y-%m-%d').date()
+                except:
+                    scheduleDate = datetime.strptime(str(scheduleDate), '%d/%m/%Y').date()
+                cur.execute(f"update users set scheduleStudentCurrentDate = \"{scheduleDate}\" where tID = {tID}")
+                db.commit()
+            finally:
+                lock.release()
             if schedule[0]['name'] != "None":
                 toSendText = scheduleMessage_1.format(str(scheduleDate.strftime("%d/%m/%Y")))#ИЗМЕНИТЬ ФОРМАТ
                 for lesson in schedule:
@@ -798,7 +854,16 @@ def sendSchedule(tID, inputData):
                 toSendText = scheduleMessage_2.format(scheduleDate)
 
         case 1:
-            scheduleTeacherCurrentDate = scheduleDate
+            try:
+                lock.acquire(True)
+                try:
+                    scheduleDate = datetime.strptime(str(scheduleDate), '%Y-%m-%d').date()
+                except:
+                    scheduleDate = datetime.strptime(str(scheduleDate), '%d/%m/%Y').date()
+                cur.execute(f"update users set scheduleTeacherCurrentDate = \"{scheduleDate}\" where tID = {tID}")
+                db.commit()
+            finally:
+                lock.release()
             if schedule[0]['name'] != "None":
                 toSendText = scheduleMessage_9.format(schedule[0]['teacher'].strip(), str(scheduleDate.strftime("%d/%m/%Y")))  # ИЗМЕНИТЬ ФОРМАТ
                 for lesson in schedule:
@@ -827,6 +892,8 @@ def teacherSchedule_1(message):
         contents = contents.text
         soup = BeautifulSoup(contents, 'lxml')
         teachersList = soup.find_all("div", class_="search-result__title")
+        keyboard = types.ReplyKeyboardRemove()
+        keyboard = telebot.types.ReplyKeyboardMarkup()
         if len(teachersList) != 0:
             for a in teachersList:
                 cur = str(a)[str(a).find("href"):-10]

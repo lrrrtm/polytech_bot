@@ -1,4 +1,4 @@
-key = "5307163611:AAEuyYRyxAU7HReIoTzPt1Wl4EZ1O0LFHgA"
+key = "5761336221:AAEiDuuhrVTfUOUZgWYUfd1Y6kyEb2ZBth4"
 places = {
     "main": "Главное здание",
     "chem": "Химический корпус",
