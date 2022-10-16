@@ -528,13 +528,12 @@ def startMessage(message):
 
 @bot.message_handler(commands=['cats'])
 def startCats(message):
-    types.ReplyKeyboardRemove()
     tID = message.chat.id
     if inDatabase(tID):
         getCat(tID)
     else:
         text = errorMessage_5
-        bot.send_message(tID, text, parse_mode="Markdown")
+        bot.send_message(tID, text, parse_mode="Markdown", reply_markup=telebot.types.ReplyKeyboardRemove())
 '''
 @bot.message_handler(commands=['cats'])
 def startCats(message):
@@ -543,8 +542,8 @@ def startCats(message):
 
 @bot.message_handler(commands=['restart'])
 def startRestart(message):
-    keyboard = types.ReplyKeyboardRemove()
     tID = message.chat.id
+    bot.delete_message(tID, message_id=message.id - 1)
     try:
         lock.acquire(True)
         cur.execute(f"delete from users where tID = {tID}")
@@ -558,7 +557,6 @@ def startRestart(message):
 
 @bot.message_handler(content_types=['text'])
 def startCheckText(message):
-    types.ReplyKeyboardRemove()
     tID = message.chat.id
     localText = message.text
     currentDate = datetime.now(IST)
@@ -793,7 +791,7 @@ def getSchedule(inputDate, type, groupID):
                 outputLessonData['place'] = "None"
                 outputLessonData['teacher'] = "None"
                 outputData.append(outputLessonData)
-                return [outputData, localDate.strftime("%d/%m/%Y"), type]
+                return [outputData, localDate, type]
 
             soup = BeautifulSoup(workingDay, 'lxml')
             lessonsArr = soup.find_all("li", class_="lesson")
@@ -833,16 +831,13 @@ def sendSchedule(tID, inputData):
         case 0:
             try:
                 lock.acquire(True)
-                try:
-                    scheduleDate = datetime.strptime(str(scheduleDate), '%Y-%m-%d').date()
-                except:
-                    scheduleDate = datetime.strptime(str(scheduleDate), '%d/%m/%Y').date()
+                scheduleDate = datetime.strptime(str(scheduleDate), '%Y-%m-%d').date()
                 cur.execute(f"update users set scheduleStudentCurrentDate = \"{scheduleDate}\" where tID = {tID}")
                 db.commit()
             finally:
                 lock.release()
             if schedule[0]['name'] != "None":
-                toSendText = scheduleMessage_1.format(str(scheduleDate.strftime("%d/%m/%Y")))#ИЗМЕНИТЬ ФОРМАТ
+                toSendText = scheduleMessage_1.format(scheduleDate.strftime('%d/%m/%Y'))#ИЗМЕНИТЬ ФОРМАТ
                 for lesson in schedule:
                     subjectName = lesson['name']
                     subjectPlace = lesson['place']
@@ -851,21 +846,18 @@ def sendSchedule(tID, inputData):
                     line = scheduleMessage_3.format(subjectName, subjectType, subjectPlace, subjectTeacher)
                     toSendText = toSendText + line + "\n\n"
             else:
-                toSendText = scheduleMessage_2.format(scheduleDate)
+                toSendText = scheduleMessage_2.format(scheduleDate.strftime('%d/%m/%Y'))
 
         case 1:
             try:
                 lock.acquire(True)
-                try:
-                    scheduleDate = datetime.strptime(str(scheduleDate), '%Y-%m-%d').date()
-                except:
-                    scheduleDate = datetime.strptime(str(scheduleDate), '%d/%m/%Y').date()
+                scheduleDate = datetime.strptime(str(scheduleDate), '%Y-%m-%d').date()
                 cur.execute(f"update users set scheduleTeacherCurrentDate = \"{scheduleDate}\" where tID = {tID}")
                 db.commit()
             finally:
                 lock.release()
             if schedule[0]['name'] != "None":
-                toSendText = scheduleMessage_9.format(schedule[0]['teacher'].strip(), str(scheduleDate.strftime("%d/%m/%Y")))  # ИЗМЕНИТЬ ФОРМАТ
+                toSendText = scheduleMessage_9.format(schedule[0]['teacher'].strip(), scheduleDate.strftime('%d/%m/%Y'))  # ИЗМЕНИТЬ ФОРМАТ
                 for lesson in schedule:
                     subjectName = lesson['name']
                     subjectPlace = lesson['place']
@@ -873,7 +865,7 @@ def sendSchedule(tID, inputData):
                     line = scheduleMessage_10.format(subjectName, subjectType, subjectPlace)
                     toSendText = toSendText + line + "\n\n"
             else:
-                toSendText = scheduleMessage_2.format(scheduleDate)
+                toSendText = scheduleMessage_2.format(scheduleDate.strftime('%d/%m/%Y'))
 
     return toSendText
 
