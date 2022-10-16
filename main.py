@@ -13,7 +13,7 @@ import pytz
 import xlsxwriter
 import dog
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from datetime import time as dTime
 from bs4 import BeautifulSoup
 from docxtpl import DocxTemplate
@@ -22,7 +22,7 @@ from docxtpl import DocxTemplate
 bot = telebot.TeleBot(key)
 db = sqlite3.connect(f"{mainSource}{dbName}", check_same_thread=False)
 cur = db.cursor()
-
+keyboard = telebot.types.ReplyKeyboardMarkup()
 IST = pytz.timezone(timeZone)
 dateNow = str(datetime.now(IST))[0:10]
 timeNow = str(datetime.now(IST))[11:16]
@@ -32,6 +32,15 @@ global lock
 lock = threading.Lock()
 global allSendMessage
 allSendMessage = ""
+
+global scheduleStudentCurrentDate
+scheduleStudentCurrentDate = datetime.now()
+
+global scheduleTeacherCurrentDate
+scheduleTeacherCurrentDate = datetime.now()
+
+global scheduleTeacherCurrentID
+scheduleTeacherCurrentID = int()
 #-----------------------------------------------------------------------------------------
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -268,7 +277,7 @@ def callback(call):
                         finally:
                             lock.release()
             text = serviceMessage_4
-            bot.send_message(mainAdminID, text, parse_mode="Markdown")
+            bot.send_message(tID, text, parse_mode="Markdown")
 
         elif call.data == "settings_restart":
             bot.delete_message(tID, call.message.message_id)
@@ -283,10 +292,82 @@ def callback(call):
                 lock.release()
                 startReply(call.message)
 
+        elif call.data == "nav_forward_stud":
+            try:
+                lock.acquire(True)
+                cur.execute(f"select tID, groupID from users where tID = {tID}")
+                data = cur.fetchall()
+            finally:
+                lock.release()
+            global scheduleStudentCurrentDate
+            scheduleStudentCurrentDate += timedelta(1)
+            #print(scheduleStudentCurrentDate)
+            gettingData = getSchedule(scheduleStudentCurrentDate, 0, data[0][1])
+            match gettingData:
+                case -1:
+                    text = errorMessage_11
+                    bot.send_message(tID, text, parse_mode="Markdown")
+                case _:
+                    text = sendSchedule(tID, gettingData)
+                    markup = types.InlineKeyboardMarkup(row_width=2)
+                    markup.add(btn_17, btn_16)
+                    bot.edit_message_text(text=text, chat_id=tID, message_id=mID, reply_markup=markup, parse_mode="Markdown")
+
+        elif call.data == "nav_back_stud":
+            try:
+                lock.acquire(True)
+                cur.execute(f"select tID, groupID from users where tID = {tID}")
+                data = cur.fetchall()
+            finally:
+                lock.release()
+            scheduleStudentCurrentDate -= timedelta(1)
+            #print(scheduleStudentCurrentDate)
+            gettingData = getSchedule(scheduleStudentCurrentDate, 0, data[0][1])
+            match gettingData:
+                case -1:
+                    text = errorMessage_11
+                    bot.send_message(tID, text, parse_mode="Markdown")
+                case _:
+                    text = sendSchedule(tID, gettingData)
+                    markup = types.InlineKeyboardMarkup(row_width=2)
+                    markup.add(btn_17, btn_16)
+                    bot.edit_message_text(text=text, chat_id=tID, message_id=mID, reply_markup=markup, parse_mode="Markdown")
+
+        elif call.data == "nav_forward_teacher":
+            global scheduleTeacherCurrentDate
+            scheduleTeacherCurrentDate += timedelta(1)
+            #print(scheduleStudentCurrentDate)
+            gettingData = getSchedule(scheduleTeacherCurrentDate, 1, scheduleTeacherCurrentID)
+            match gettingData:
+                case -1:
+                    text = errorMessage_11
+                    bot.send_message(tID, text, parse_mode="Markdown")
+                    print("1111")
+                case _:
+                    text = sendSchedule(tID, gettingData)
+                    markup = types.InlineKeyboardMarkup(row_width=2)
+                    markup.add(btn_17, btn_16)
+                    bot.edit_message_text(text=text, chat_id=tID, message_id=mID, reply_markup=markup, parse_mode="Markdown")
+
+        elif call.data == "nav_back_teacher":
+            scheduleTeacherCurrentDate -= timedelta(1)
+            #print(scheduleStudentCurrentDate)
+            gettingData = getSchedule(scheduleTeacherCurrentDate, 1, scheduleTeacherCurrentID)
+            match gettingData:
+                case -1:
+                    text = errorMessage_11
+                    bot.send_message(tID, text, parse_mode="Markdown")
+                case _:
+                    text = sendSchedule(tID, gettingData)
+                    markup = types.InlineKeyboardMarkup(row_width=2)
+                    markup.add(btn_17, btn_16)
+                    bot.edit_message_text(text=text, chat_id=tID, message_id=mID, reply_markup=markup, parse_mode="Markdown")
+
 #-----------------------------------------------------------------------------------------
 
 @bot.message_handler(commands=['start'])
 def startReply(message):
+    types.ReplyKeyboardRemove()
     tID = message.chat.id
     if str(tID)[0] == "-":
         text = errorMessage_6
@@ -309,6 +390,7 @@ def startReply(message):
 
 @bot.message_handler(commands=['schedule'])
 def startDchedule(message):
+    types.ReplyKeyboardRemove()
     tID = message.chat.id
     if inDatabase(tID):
         try:
@@ -323,13 +405,33 @@ def startDchedule(message):
             text = errorMessage_2
             bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
         else:
-            getSchedule(tID)
+            currentDate = datetime.now()
+            gettingData = getSchedule(currentDate, 0, data[0][1])
+            match gettingData:
+                case -1:
+                    text = errorMessage_11
+                    bot.send_message(tID, text, parse_mode="Markdown")
+                case _:
+                    text = sendSchedule(tID, gettingData)
+                    markup = types.InlineKeyboardMarkup(row_width=2)
+                    markup.add(btn_17, btn_16)
+                    bot.send_message(tID, text, parse_mode="Markdown", reply_markup=markup)
     else:
         text = errorMessage_5
         bot.send_message(tID, text, parse_mode="Markdown")
 
+@bot.message_handler(commands=['tschedule'])
+def startTeacherSchedule(message):
+    tID = message.chat.id
+    keyboard = telebot.types.ReplyKeyboardMarkup()
+    markup = telebot.types.InlineKeyboardMarkup(row_width=1)
+    markup.add(btn_11)
+    msg = bot.send_message(tID, scheduleMessage_6, parse_mode="Markdown", reply_markup=markup,)
+    bot.register_next_step_handler(msg, teacherSchedule_1)
+
 @bot.message_handler(commands=['routes'])
 def startRoutes(message):
+    types.ReplyKeyboardRemove()
     tID = message.chat.id
     if inDatabase(tID):
         markup = types.InlineKeyboardMarkup(row_width=2)
@@ -346,6 +448,7 @@ def startRoutes(message):
 
 @bot.message_handler(commands=['settings'])
 def startSettings(message):
+    types.ReplyKeyboardRemove()
     tID = message.chat.id
     if inDatabase(tID):
         markup = types.InlineKeyboardMarkup(row_width=1)
@@ -358,6 +461,7 @@ def startSettings(message):
 
 @bot.message_handler(commands=['find'])
 def startFind(message):
+    types.ReplyKeyboardRemove()
     tID = message.chat.id
     if inDatabase(tID):
         bot.send_message(tID, "Эта функция пока находится в разработке")
@@ -367,6 +471,7 @@ def startFind(message):
 
 @bot.message_handler(commands=['dogs'])
 def startDogs(message):
+    types.ReplyKeyboardRemove()
     tID = message.chat.id
     if inDatabase(tID):
         dog.getDog(directory=f"{mainSource}/cats/", filename=str(tID))
@@ -377,6 +482,7 @@ def startDogs(message):
 
 @bot.message_handler(commands=['message'])
 def startMessage(message):
+    types.ReplyKeyboardRemove()
     tID = message.chat.id
     if tID in adminList:
         text = serviceMessage_2
@@ -385,6 +491,7 @@ def startMessage(message):
 
 @bot.message_handler(commands=['cats'])
 def startCats(message):
+    types.ReplyKeyboardRemove()
     tID = message.chat.id
     if inDatabase(tID):
         getCat(tID)
@@ -395,15 +502,11 @@ def startCats(message):
 @bot.message_handler(commands=['cats'])
 def startCats(message):
     tID = message.chat.id
-    text = scheduleMessage_4
-    markup = types.InlineKeyboardMarkup(row_width=1)
-
-    msg = bot.send_message(tID, text)
-    bot.register_next_step_handler(msg, otherSchedule)
 '''
 
 @bot.message_handler(commands=['restart'])
 def startRestart(message):
+    keyboard = types.ReplyKeyboardRemove()
     tID = message.chat.id
     try:
         lock.acquire(True)
@@ -415,6 +518,29 @@ def startRestart(message):
     finally:
         lock.release()
         startReply(message)
+
+@bot.message_handler(content_types=['text'])
+def startCheckText(message):
+    types.ReplyKeyboardRemove()
+    tID = message.chat.id
+    localText = message.text
+    currentDate = datetime.now(IST)
+    if "(" in localText and ")" in localText:
+        bot.delete_message(tID, message_id=message.id-1)
+        teacherID = localText[localText.find("(")+1:localText.find(")")]
+        global scheduleTeacherCurrentID
+        scheduleTeacherCurrentID = int(teacherID)
+        gettingData = getSchedule(currentDate, 1 , teacherID)
+        match gettingData:
+            case -1:
+                text = errorMessage_11
+                bot.send_message(tID, text, parse_mode="Markdown")
+            case _:
+                sendSchedule(tID, gettingData)
+                text = sendSchedule(tID, gettingData)
+                markup = types.InlineKeyboardMarkup(row_width=2)
+                markup.add(btn_35, btn_18)
+                bot.send_message(tID, text, parse_mode="Markdown", reply_markup=markup)
 
 #-----------------------------------------------------------------------------------------
 
@@ -457,7 +583,7 @@ def addLink(message):
         if checkURL(marker1, marker2):
             try:
                 lock.acquire(True)
-                cur.execute(f"update users set groupID = \"{scheduleLink.format(marker1, marker2)}\" where tID = {tID}")
+                cur.execute(f"update users set groupID = \"{marker1}-{marker2}\" where tID = {tID}")
                 db.commit()
             finally:
                 lock.release()
@@ -471,117 +597,6 @@ def addLink(message):
         text = errorMessage_4
         msg = bot.send_message(tID, text, parse_mode="Markdown")
         bot.register_next_step_handler(msg, addLink)
-
-def getSchedule(tID):
-    try:
-        lock.acquire(True)
-        cur.execute(f"select groupID from users where tID = {tID}")
-        link = cur.fetchall()[0][0]
-    finally:
-        lock.release()
-
-    IST = pytz.timezone(timeZone)
-    dateNow = datetime.now(IST)
-    curDay, curHour = dateNow.day, dateNow.hour
-    curMonth, curYear = dateNow.month, dateNow.year
-    curMin = dateNow.min
-    contents = requests.get(str(link) + f"?date={curYear}-{curMonth}-{curDay}").text
-    soup = BeautifulSoup(contents, 'lxml')
-    schedules = soup.find_all("li", class_="schedule__day")
-
-    schedule = {}
-    for a in schedules:
-        text = str(a)
-        soup = BeautifulSoup(text, 'lxml')
-        date = soup.find("div", class_="schedule__date").text[0:2]
-        curSchedule = soup.find("ul", class_="schedule__lessons")
-        soup = BeautifulSoup(str(curSchedule), 'lxml')
-        lessons = soup.find_all("li", class_="lesson")
-        day = []
-        for b in lessons:
-            text = str(b)
-            soup = BeautifulSoup(text, 'lxml')
-            subName = soup.find("div", class_="lesson__subject")
-            placeName = soup.find("div", class_="lesson__places")
-            teacherName = soup.find("div", class_="lesson__teachers")
-            typeName = soup.find("div", class_="lesson__type")
-            time = soup.find("span", class_="lesson__time").text.split("-")
-            if str(teacherName) == "None":
-                teacherName = "Несколько преподавателей/преподаватель отсутствует"
-            else:
-                teacherName = teacherName.text.strip()
-            lesson = {
-                "time": time,
-                "subject": subName.text,
-                "type": typeName.text,
-                "place": placeName.text,
-                "teacher": teacherName
-            }
-            day.append(lesson)
-        schedule[int(date)] = day
-
-    try:
-        print(datetime.now(IST).ctime(), tID, "getSchedule")
-        curdaySchedule = schedule[curDay]
-    except KeyError:
-        if int(dateNow.weekday()) + 1 == 6:
-            bot.send_message(tID, scheduleMessage_2.format(int(curDay)+1, curMonth, curYear), parse_mode="Markdown")
-        else:
-            text = errorMessage_10
-            bot.send_message(tID, text)
-        return 0
-
-    endingLastLesson = int(curdaySchedule[-1]["time"][1].split(":")[0])
-    if curHour <= endingLastLesson:
-        message = scheduleMessage_1.format(curDay, curMonth, curYear) + "\n"
-
-        for a in curdaySchedule:
-            time_ = a['time']
-            start, end = dateNow.replace(hour=int(time_[0].split(":")[0]),
-                                         minute=int(time_[0].split(":")[1])), \
-                         dateNow.replace(hour=int(time_[1].split(":")[0]),
-                                         minute=int(time_[1].split(":")[1]))
-            if dateNow >= start and dateNow < end:
-                sign = "🟢"
-            elif dateNow < start:
-                sign = "🟠"
-            elif dateNow > end:
-                sign = "🔴"
-            else: sign = ""
-            subject = a['subject']
-            type = a['type']
-            place = a['place']
-            teacher = a['teacher']
-            curLessonText = scheduleMessage_3.format(sign, subject, type, place, teacher)
-            message += curLessonText + "\n\n"
-        markup = types.InlineKeyboardMarkup(row_width=1)
-        if int(dateNow.weekday()) + 1 != 6:
-            #markup.add(btn_27)
-            pass
-        bot.send_message(tID, message, parse_mode="Markdown", reply_markup=markup)
-    else:
-        if int(dateNow.weekday()) + 1 == 6:
-            bot.send_message(tID, scheduleMessage_2.format(int(curDay)+1, curMonth, curYear), parse_mode="Markdown")
-        else:
-            try:
-                curdaySchedule = schedule[curDay+1]
-            except KeyError:
-                text = scheduleMessage_5
-                bot.send_message(tID, text, parse_mode="Markdown")
-            message = "*Занятия на сегодня закончились*\n" + scheduleMessage_1.format(int(curDay)+1, curMonth, curYear) + "\n"
-
-            for a in curdaySchedule:
-                time_ = a['time']
-                sign = ""
-                subject = a['subject']
-                type = a['type']
-                place = a['place']
-                teacher = a['teacher']
-                curLessonText = scheduleMessage_3.format(sign, subject, type, place, teacher)
-                message += curLessonText + "\n\n"
-            bot.send_message(tID, message, parse_mode="Markdown")
-
-
 
 def editName(message):
     tID = message.chat.id
@@ -621,7 +636,7 @@ def editLink(message):
         if checkURL(marker1, marker2):
             try:
                 lock.acquire(True)
-                cur.execute(f"update users set groupID = \"{scheduleLink.format(marker1, marker2)}\" where tID = {tID}")
+                cur.execute(f"update users set groupID = \"{marker1}-{marker2}\" where tID = {tID}")
                 db.commit()
             finally:
                 lock.release()
@@ -653,7 +668,7 @@ def checkName(name):
         return 4
 
 def checkURL(m1,m2):
-    response = requests.get(scheduleLink.format(m1, m2))
+    response = requests.get(scheduleStudentLink.format(m1, m2, datetime.now().date()))
     if int(response.status_code) == 200:
         return True
     else:
@@ -696,14 +711,134 @@ def getCat(tID):
         f.close()
 
     bot.send_photo(tID, open(f"{mainSource}/cats/{tID}.jpg",'rb'))
-'''
-def otherSchedule(message):
+
+def getSchedule(inputDate, type, groupID):
+    outputData = []
+    localDate, localTime = inputDate.date(), inputDate.time()
+    requestLink = ""
+    match type:
+        case 0: #Студент
+            marker1, marker2 = map(int, groupID.split("-"))
+            requestLink = scheduleStudentLink.format(marker1, marker2, localDate)
+
+
+        case 1: #Преподаватель
+            marker1 = groupID
+            requestLink = scheduleTeacherLink.format(groupID, localDate)
+
+    contents = requests.get(requestLink)
+    match contents.status_code:
+        case 200:  # Если доступ к странице получен успешно
+            outputLessonData = {}
+            contents = contents.text
+            soup = BeautifulSoup(contents, 'lxml')
+            curSchedule = soup.find_all("li", class_="schedule__day")
+            workingDay = ""
+            flag = 0
+            for a in curSchedule:
+                a = str(a)
+                soup = BeautifulSoup(a, 'lxml')
+                if int(soup.find("div", class_="schedule__date").text[0:2]) == int(localDate.day):
+                    workingDay = a
+                    flag = 1
+                    break
+            if flag == 0:
+                outputLessonData['name'] = "None"
+                outputLessonData['type'] = "None"
+                outputLessonData['place'] = "None"
+                outputLessonData['teacher'] = "None"
+                outputData.append(outputLessonData)
+                return [outputData, localDate.strftime("%d/%m/%Y"), type]
+
+            soup = BeautifulSoup(workingDay, 'lxml')
+            lessonsArr = soup.find_all("li", class_="lesson")
+
+            for lesson in lessonsArr:
+                lesson = str(lesson)
+                soup = BeautifulSoup(lesson, 'lxml')
+                subjectName = soup.find("div", class_="lesson__subject").text
+                subjectPlace = soup.find("div", class_="lesson__places").text
+                subjectTeacher = soup.find("div", class_="lesson__teachers")
+                subjectType = soup.find("div", class_="lesson__type").text
+                if str(subjectTeacher) == "None":
+                    subjectTeacher = "Неизвестно"
+                else:
+                    subjectTeacher = subjectTeacher.text
+                outputLessonData['name'] = subjectName
+                outputLessonData['type'] = subjectType
+                outputLessonData['place'] = subjectPlace
+                outputLessonData['teacher'] = subjectTeacher
+
+                outputData.append(outputLessonData)
+                outputLessonData = {}
+
+           # print(outputData)
+            return [outputData, localDate, type]
+
+        case 404:
+            print(requestLink)
+            return -1
+
+
+def sendSchedule(tID, inputData):
+    schedule, scheduleDate, type = inputData[0], inputData[1], inputData[2]
+    match type:
+        case 0:
+            scheduleStudentCurrentDate = scheduleDate
+            if schedule[0]['name'] != "None":
+                toSendText = scheduleMessage_1.format(str(scheduleDate.strftime("%d/%m/%Y")))#ИЗМЕНИТЬ ФОРМАТ
+                for lesson in schedule:
+                    subjectName = lesson['name']
+                    subjectPlace = lesson['place']
+                    subjectTeacher = lesson['teacher'].strip()
+                    subjectType = lesson['type']
+                    line = scheduleMessage_3.format(subjectName, subjectType, subjectPlace, subjectTeacher)
+                    toSendText = toSendText + line + "\n\n"
+            else:
+                toSendText = scheduleMessage_2.format(scheduleDate)
+
+        case 1:
+            scheduleTeacherCurrentDate = scheduleDate
+            if schedule[0]['name'] != "None":
+                toSendText = scheduleMessage_9.format(schedule[0]['teacher'].strip(), str(scheduleDate.strftime("%d/%m/%Y")))  # ИЗМЕНИТЬ ФОРМАТ
+                for lesson in schedule:
+                    subjectName = lesson['name']
+                    subjectPlace = lesson['place']
+                    subjectType = lesson['type']
+                    line = scheduleMessage_10.format(subjectName, subjectType, subjectPlace)
+                    toSendText = toSendText + line + "\n\n"
+            else:
+                toSendText = scheduleMessage_2.format(scheduleDate)
+
+    return toSendText
+
+def teacherSchedule_1(message):
+    contents = ""
     tID = message.chat.id
-    marker1, marker2 = message.text.split("/")[0], message.text.split("/")[1]
-    if checkOtherUrl(marker1, marker2)
+    localText = message.text.split(" ")
+    if len(localText) == 1:
+        contents = requests.get(searchTeacherLink + localText[0])
+    elif len(localText) > 1:
+        localLink = searchTeacherLink
+        for a in localText:
+            localLink = localLink + a + "%20"
+        contents = requests.get(localLink)
+    if contents.status_code == 200:
+        contents = contents.text
+        soup = BeautifulSoup(contents, 'lxml')
+        teachersList = soup.find_all("div", class_="search-result__title")
+        if len(teachersList) != 0:
+            for a in teachersList:
+                cur = str(a)[str(a).find("href"):-10]
+                curTeacherID = cur[cur.find("rs/") + 3:cur.find("\">")]
+                curTeacherlocalText = cur[cur.find("\">") + 2:]
+                keyboard.add(telebot.types.KeyboardButton(text=f"{curTeacherlocalText} ({curTeacherID})"))
+            bot.send_message(tID, scheduleMessage_7, reply_markup=keyboard, parse_mode="Markdown")
+
+        else:
+            bot.send_message(tID, errorMessage_12, parse_mode="Markdown")
+
     else:
-        text = errorMessage_4
-        msg = bot.send_message(tID, text)
-        bot.register_next_step_handler(msg, otherSchedule)
-'''
+        bot.send_message(tID, errorMessage_11, parse_mode="Markdown")
+
 bot.polling(none_stop=True)

@@ -92,8 +92,8 @@ symbols = "!?.,$&^*#@;-=+"
 
 #ПУТИ
 dbName = "db.db"
-#mainSource = "C:\\Users\\test\\Desktop\\polytech_bot\\polytech_bot\\"
-mainSource = "D:\Education\Pycharm projects\polytech_bot\\"
+mainSource = "C:\\Users\\test\\Desktop\\polytech_bot\\polytech_bot\\"
+#mainSource = "D:\Education\Pycharm projects\polytech_bot\\"
 #mainSource = "/home/lrrrtm1/"
 
 #-----------------------------------------------------------------------------------------
@@ -105,9 +105,10 @@ mainAdminID = 409801981
 #-----------------------------------------------------------------------------------------
 
 #КОНСТАНТЫ
-scheduleLink = "https://ruz.spbstu.ru/faculty/{0}/groups/{1}"
-otherScheduleLink = "https://ruz.spbstu.ru/search/groups?q={0}%2F{1}"
+scheduleStudentLink = "https://ruz.spbstu.ru/faculty/{0}/groups/{1}?date={2}"
+scheduleTeacherLink = "https://ruz.spbstu.ru/teachers/{0}?date={1}"
 timeZone = "Turkey"
 alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ QWERTYUIOPLKJHGFDSAZXCVBNM"
 catLink = "https://meow.senither.com/v1/random"
 catLinkGet = "https://meow.senither.com/c/{0}"
+searchTeacherLink = "https://ruz.spbstu.ru/search/teacher?q="

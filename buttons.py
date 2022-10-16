@@ -30,9 +30,10 @@ btn_13 = types.InlineKeyboardButton("Сохранить ✅", callback_data="nav
 btn_14 = types.InlineKeyboardButton("Обновить 🔄", callback_data="nav_update")
 btn_15 = types.InlineKeyboardButton("Изменить 🔄", callback_data="nav_edit")
 
-btn_16 = types.InlineKeyboardButton("", callback_data="")
-btn_17 = types.InlineKeyboardButton("", callback_data="")
-btn_18 = types.InlineKeyboardButton("", callback_data="")
+btn_16 = types.InlineKeyboardButton("Вперёд ▶", callback_data="nav_forward_stud")
+btn_17 = types.InlineKeyboardButton("Назад ◀", callback_data="nav_back_stud")
+btn_18 = types.InlineKeyboardButton("Вперёд ▶", callback_data="nav_forward_teacher")
+btn_35 = types.InlineKeyboardButton("Назад ◀", callback_data="nav_back_teacher")
 
 #-----------------------------------------------------------------------------------------
 
