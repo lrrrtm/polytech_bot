@@ -225,7 +225,7 @@ def callback(call):
             bot.delete_message(tID, call.message.message_id)
             try:
                 lock.acquire(True)
-                cur.execute(f"select name, tID from users where tID = {tID}")
+                cur.execute(f"select name,  tID from users where tID = {tID}")
                 name = cur.fetchall()[0][0]
             finally:
                 lock.release()
@@ -301,6 +301,10 @@ def callback(call):
                 scheduleStudentCurrentDate += timedelta(1)
                 cur.execute(f"update users set scheduleStudentCurrentDate = \"{scheduleStudentCurrentDate}\" where tID = {tID}")
                 db.commit()
+            except TypeError as e:
+                text = errorMessage_11
+                bot.send_message(tID, text, parse_mode="Markdown")
+                print(f"None error\n{tID}: {e}")
             finally:
                 lock.release()
 
@@ -639,6 +643,7 @@ def addLink(message):
 
 def editName(message):
     tID = message.chat.id
+    bot.delete_message(tID, int(message.id)-1)
     name = message.text.strip()
     flag = checkName(name)
     if flag == 0:
@@ -666,6 +671,7 @@ def editName(message):
 def editLink(message):
     tID = message.chat.id
     mID = message.id
+    bot.delete_message(tID, int(mID)-1)
     link = message.text
     link = link.split("/")
     try:
@@ -761,7 +767,11 @@ def getSchedule(inputDate, type, groupID):
     requestLink = ""
     match type:
         case 0: #Студент
-            marker1, marker2 = map(int, groupID.split("-"))
+            try:
+                marker1, marker2 = map(int, groupID.split("-"))
+            except Exception as e:
+                print(f"Error split {groupID}")
+                return -1
             requestLink = scheduleStudentLink.format(marker1, marker2, localDate)
 
 
@@ -872,6 +882,7 @@ def sendSchedule(tID, inputData):
 def teacherSchedule_1(message):
     contents = ""
     tID = message.chat.id
+    bot.delete_message(chat_id=tID, message_id=int(message.id)-1)
     localText = message.text.split(" ")
     if len(localText) == 1:
         contents = requests.get(searchTeacherLink + localText[0])
