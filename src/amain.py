@@ -10,15 +10,13 @@ from aiogram import Bot, Dispatcher, executor, types
 
 import schedule
 
-from config import *
-
-API_TOKEN = "1600892039:AAEe1z177JQWe67UZrfJD3bKgIxtMzPREH0"
+import config
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
 # Initialize bot and dispatcher
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=config.key)
 dp = Dispatcher(bot)
 
 
