@@ -1,5 +1,8 @@
 import requests
 
+# import aiohttp
+# import asyncio
+
 from config import *
 from buttons import *
 from text import *
@@ -50,74 +53,74 @@ def sndLoc(call, tid, place_id):
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     if call.message:
-        tID = call.message.chat.id
-        mID = call.message.id
+        chat_id = call.message.chat.id
+        msg_id = call.message.id
         if call.data == "reg_start":
-            bot.edit_message_reply_markup(tID, message_id=mID, reply_markup=None)
+            bot.edit_message_reply_markup(chat_id, message_id=msg_id, reply_markup=None)
             text = regMessage_1
             markup = telebot.types.InlineKeyboardMarkup(row_width=1)
             msg = bot.send_message(
-                tID, text, parse_mode="Markdown", reply_markup=markup
+                chat_id, text, parse_mode="Markdown", reply_markup=markup
             )
             bot.register_next_step_handler(msg, inputName)
 
         elif call.data == "reg_link":
-            bot.delete_message(tID, call.message.message_id)
+            bot.delete_message(chat_id, call.message.message_id)
             text = replyMessage_2
             markup = telebot.types.InlineKeyboardMarkup(row_width=1)
-            markup.add(btn_11)
+            markup.add(buttons["navigation"]["cancel"])
             msg = bot.send_message(
-                tID, text, parse_mode="Markdown", reply_markup=markup
+                chat_id, text, parse_mode="Markdown", reply_markup=markup
             )
             bot.register_next_step_handler(msg, addLink)
 
         elif call.data == "nav_cancel":
-            bot.clear_step_handler_by_chat_id(chat_id=tID)
-            bot.delete_message(tID, call.message.message_id)
+            bot.clear_step_handler_by_chat_id(chat_id=chat_id)
+            bot.delete_message(chat_id, call.message.message_id)
             text = replyMessage_4
-            bot.send_message(tID, text, parse_mode="Markdown")
+            bot.send_message(chat_id, text, parse_mode="Markdown")
 
         elif call.data.startswith("map_") and call.data in places:
             sndLoc(call.data)
 
         elif call.data == "settings_name":
-            bot.delete_message(tID, call.message.message_id)
+            bot.delete_message(chat_id, call.message.message_id)
             try:
                 lock.acquire(True)
-                cur.execute(f"select name,  tID from users where tID = {tID}")
+                cur.execute(f"select name,  tID from users where tID = {chat_id}")
                 name = cur.fetchall()[0][0]
             finally:
                 lock.release()
             markup = telebot.types.InlineKeyboardMarkup(row_width=1)
-            markup.add(btn_11)
+            markup.add(buttons["navigation"]["cancel"])
             text = settingsMessage_1.format(name)
             msg = bot.send_message(
-                tID, text, parse_mode="Markdown", reply_markup=markup
+                chat_id, text, parse_mode="Markdown", reply_markup=markup
             )
             bot.register_next_step_handler(msg, editName)
 
         elif call.data == "settings_group":
-            bot.delete_message(tID, call.message.message_id)
+            bot.delete_message(chat_id, call.message.message_id)
             text = settingsMessage_2
             markup = telebot.types.InlineKeyboardMarkup(row_width=1)
-            markup.add(btn_11)
+            markup.add(buttons["navigation"]["cancel"])
             msg = bot.send_message(
-                tID, text, parse_mode="Markdown", reply_markup=markup
+                chat_id, text, parse_mode="Markdown", reply_markup=markup
             )
             bot.register_next_step_handler(msg, editLink)
 
         elif call.data == "settings_help":
-            bot.delete_message(tID, call.message.message_id)
+            bot.delete_message(chat_id, call.message.message_id)
             text = settingsMessage_3
-            bot.send_message(tID, text, parse_mode="Markdown")
+            bot.send_message(chat_id, text, parse_mode="Markdown")
 
         elif call.data == "settings_about":
-            bot.delete_message(tID, call.message.message_id)
+            bot.delete_message(chat_id, call.message.message_id)
             text = settingsMessage_4
-            bot.send_message(tID, text, parse_mode="Markdown")
+            bot.send_message(chat_id, text, parse_mode="Markdown")
 
         elif call.data == "sendMessage":
-            bot.delete_message(tID, call.message.message_id)
+            bot.delete_message(chat_id, call.message.message_id)
             try:
                 lock.acquire(True)
                 cur.execute(f"select tID, name from users")
@@ -137,17 +140,17 @@ def callback(call):
                         finally:
                             lock.release()
             text = serviceMessage_4
-            bot.send_message(tID, text, parse_mode="Markdown")
+            bot.send_message(chat_id, text, parse_mode="Markdown")
 
         elif call.data == "settings_restart":
-            bot.delete_message(tID, call.message.message_id)
+            bot.delete_message(chat_id, call.message.message_id)
             try:
                 lock.acquire(True)
-                cur.execute(f"delete from users where tID = {tID}")
+                cur.execute(f"delete from users where tID = {chat_id}")
                 db.commit()
             except Exception:
                 text = errorMessage_5
-                bot.send_message(tID, text, parse_mode="Markdown")
+                bot.send_message(chat_id, text, parse_mode="Markdown")
             finally:
                 lock.release()
                 startReply(call.message)
@@ -155,10 +158,10 @@ def callback(call):
         elif call.data == "nav_forward_stud":
             try:
                 lock.acquire(True)
-                cur.execute(f"select tID, groupID from users where tID = {tID}")
+                cur.execute(f"select tID, groupID from users where tID = {chat_id}")
                 data = cur.fetchall()
                 cur.execute(
-                    f"select tID, scheduleStudentCurrentDate from users where tID = {tID}"
+                    f"select tID, scheduleStudentCurrentDate from users where tID = {chat_id}"
                 )
                 scheduleStudentCurrentDate = cur.fetchall()[0][1]
                 scheduleStudentCurrentDate = datetime.strptime(
@@ -167,13 +170,13 @@ def callback(call):
                 print(scheduleStudentCurrentDate)
                 scheduleStudentCurrentDate += timedelta(1)
                 cur.execute(
-                    f'update users set scheduleStudentCurrentDate = "{scheduleStudentCurrentDate}" where tID = {tID}'
+                    f'update users set scheduleStudentCurrentDate = "{scheduleStudentCurrentDate}" where tID = {chat_id}'
                 )
                 db.commit()
             except TypeError as e:
                 text = errorMessage_11
-                bot.send_message(tID, text, parse_mode="Markdown")
-                print(f"None error\n{tID}: {e}")
+                bot.send_message(chat_id, text, parse_mode="Markdown")
+                print(f"None error\n{chat_id}: {e}")
             finally:
                 lock.release()
 
@@ -181,17 +184,20 @@ def callback(call):
             match gettingData:
                 case -1:
                     text = errorMessage_11
-                    bot.send_message(tID, text, parse_mode="Markdown")
+                    bot.send_message(chat_id, text, parse_mode="Markdown")
                 case _:
-                    text = sendSchedule(tID, gettingData)
+                    text = sendSchedule(chat_id, gettingData)
                     keyboard = telebot.types.ReplyKeyboardRemove()
                     keyboard = telebot.types.ReplyKeyboardMarkup()
                     markup = telebot.types.InlineKeyboardMarkup(row_width=2)
-                    markup.add(btn_17, btn_16)
+                    markup.add(
+                        buttons["navigation"]["back_stud"],
+                        buttons["navigation"]["forward_stud"],
+                    )
                     bot.edit_message_text(
                         text=text,
-                        chat_id=tID,
-                        message_id=mID,
+                        chat_id=chat_id,
+                        message_id=msg_id,
                         reply_markup=markup,
                         parse_mode="Markdown",
                     )
@@ -199,10 +205,10 @@ def callback(call):
         elif call.data == "nav_back_stud":
             try:
                 lock.acquire(True)
-                cur.execute(f"select tID, groupID from users where tID = {tID}")
+                cur.execute(f"select tID, groupID from users where tID = {chat_id}")
                 data = cur.fetchall()
                 cur.execute(
-                    f"select tID, scheduleStudentCurrentDate from users where tID = {tID}"
+                    f"select tID, scheduleStudentCurrentDate from users where tID = {chat_id}"
                 )
                 scheduleStudentCurrentDate = cur.fetchall()[0][1]
                 scheduleStudentCurrentDate = datetime.strptime(
@@ -210,7 +216,7 @@ def callback(call):
                 ).date()
                 scheduleStudentCurrentDate -= timedelta(1)
                 cur.execute(
-                    f'update users set scheduleStudentCurrentDate = "{scheduleStudentCurrentDate}" where tID = {tID}'
+                    f'update users set scheduleStudentCurrentDate = "{scheduleStudentCurrentDate}" where tID = {chat_id}'
                 )
                 db.commit()
             finally:
@@ -220,15 +226,18 @@ def callback(call):
             match gettingData:
                 case -1:
                     text = errorMessage_11
-                    bot.send_message(tID, text, parse_mode="Markdown")
+                    bot.send_message(chat_id, text, parse_mode="Markdown")
                 case _:
-                    text = sendSchedule(tID, gettingData)
-                    markup = types.InlineKeyboardMarkup(row_width=2)
-                    markup.add(btn_17, btn_16)
+                    text = sendSchedule(chat_id, gettingData)
+                    markup = telebot.types.InlineKeyboardMarkup(row_width=2)
+                    markup.add(
+                        buttons["navigation"]["back_stud"],
+                        buttons["navigation"]["forward_stud"],
+                    )
                     bot.edit_message_text(
                         text=text,
-                        chat_id=tID,
-                        message_id=mID,
+                        chat_id=chat_id,
+                        message_id=msg_id,
                         reply_markup=markup,
                         parse_mode="Markdown",
                     )
@@ -240,11 +249,11 @@ def callback(call):
             try:
                 lock.acquire(True)
                 cur.execute(
-                    f"select tID, scheduleTeacherCurrentID from users where tID = {tID}"
+                    f"select tID, scheduleTeacherCurrentID from users where tID = {chat_id}"
                 )
                 scheduleTeacherCurrentID = cur.fetchall()[0][1]
                 cur.execute(
-                    f"select tID, scheduleTeacherCurrentDate from users where tID = {tID}"
+                    f"select tID, scheduleTeacherCurrentDate from users where tID = {chat_id}"
                 )
                 scheduleTeacherCurrentDate = cur.fetchall()[0][1]
                 scheduleTeacherCurrentDate = datetime.strptime(
@@ -252,7 +261,7 @@ def callback(call):
                 ).date()
                 scheduleTeacherCurrentDate += timedelta(1)
                 cur.execute(
-                    f'update users set scheduleTeacherCurrentDate = "{scheduleTeacherCurrentDate}" where tID = {tID}'
+                    f'update users set scheduleTeacherCurrentDate = "{scheduleTeacherCurrentDate}" where tID = {chat_id}'
                 )
                 db.commit()
             finally:
@@ -263,16 +272,19 @@ def callback(call):
             match gettingData:
                 case -1:
                     text = errorMessage_11
-                    bot.send_message(tID, text, parse_mode="Markdown")
+                    bot.send_message(chat_id, text, parse_mode="Markdown")
                     # print("1111")
                 case _:
-                    text = sendSchedule(tID, gettingData)
-                    markup = types.InlineKeyboardMarkup(row_width=2)
-                    markup.add(btn_35, btn_18)
+                    text = sendSchedule(chat_id, gettingData)
+                    markup = telebot.types.InlineKeyboardMarkup(row_width=2)
+                    markup.add(
+                        buttons["navigation"]["back_teacher"],
+                        buttons["navigation"]["forward_teacher"],
+                    )
                     bot.edit_message_text(
                         text=text,
-                        chat_id=tID,
-                        message_id=mID,
+                        chat_id=chat_id,
+                        message_id=msg_id,
                         reply_markup=markup,
                         parse_mode="Markdown",
                     )
@@ -281,11 +293,11 @@ def callback(call):
             try:
                 lock.acquire(True)
                 cur.execute(
-                    f"select tID, scheduleTeacherCurrentID from users where tID = {tID}"
+                    f"select tID, scheduleTeacherCurrentID from users where tID = {chat_id}"
                 )
                 scheduleTeacherCurrentID = cur.fetchall()[0][1]
                 cur.execute(
-                    f"select tID, scheduleTeacherCurrentDate from users where tID = {tID}"
+                    f"select tID, scheduleTeacherCurrentDate from users where tID = {chat_id}"
                 )
                 scheduleTeacherCurrentDate = cur.fetchall()[0][1]
                 scheduleTeacherCurrentDate = datetime.strptime(
@@ -293,7 +305,7 @@ def callback(call):
                 ).date()
                 scheduleTeacherCurrentDate -= timedelta(1)
                 cur.execute(
-                    f'update users set scheduleTeacherCurrentDate = "{scheduleTeacherCurrentDate}" where tID = {tID}'
+                    f'update users set scheduleTeacherCurrentDate = "{scheduleTeacherCurrentDate}" where tID = {chat_id}'
                 )
                 db.commit()
             finally:
@@ -304,15 +316,18 @@ def callback(call):
             match gettingData:
                 case -1:
                     text = errorMessage_11
-                    bot.send_message(tID, text, parse_mode="Markdown")
+                    bot.send_message(chat_id, text, parse_mode="Markdown")
                 case _:
-                    text = sendSchedule(tID, gettingData)
-                    markup = types.InlineKeyboardMarkup(row_width=2)
-                    markup.add(btn_35, btn_18)
+                    text = sendSchedule(chat_id, gettingData)
+                    markup = telebot.types.InlineKeyboardMarkup(row_width=2)
+                    markup.add(
+                        buttons["navigation"]["back_teacher"],
+                        buttons["navigation"]["forward_teacher"],
+                    )
                     bot.edit_message_text(
                         text=text,
-                        chat_id=tID,
-                        message_id=mID,
+                        chat_id=chat_id,
+                        message_id=msg_id,
                         reply_markup=markup,
                         parse_mode="Markdown",
                     )
@@ -323,7 +338,7 @@ def callback(call):
 
 @bot.message_handler(commands=["start"])
 def startReply(message):
-    types.ReplyKeyboardRemove()
+    telebot.types.ReplyKeyboardRemove()
     tID = message.chat.id
     if str(tID)[0] == "-":
         text = errorMessage_6
@@ -339,8 +354,8 @@ def startReply(message):
             text = errorMessage_3.format(regFlag[0][1])
             bot.send_message(tID, text, parse_mode="Markdown")
         else:
-            markup = types.InlineKeyboardMarkup(row_width=1)
-            markup.add(reg_1)
+            markup = telebot.types.InlineKeyboardMarkup(row_width=1)
+            markup.add(buttons["registration"]["start"])
             text = startMessage_1
             bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
 
@@ -358,7 +373,7 @@ def startDchedule(message):
             lock.release()
         if data[0][1] == 0:
             markup = telebot.types.InlineKeyboardMarkup(row_width=1)
-            markup.add(reg_2)
+            markup.add(buttons["registration"]["link"])
             text = errorMessage_2
             bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
         else:
@@ -371,7 +386,10 @@ def startDchedule(message):
                 case _:
                     text = sendSchedule(tID, gettingData)
                     markup = telebot.types.InlineKeyboardMarkup(row_width=2)
-                    markup.add(btn_17, btn_16)
+                    markup.add(
+                        buttons["navigation"]["back_stud"],
+                        buttons["navigation"]["forward_stud"],
+                    )
                     bot.send_message(
                         tID, text, parse_mode="Markdown", reply_markup=markup
                     )
@@ -386,7 +404,7 @@ def startTeacherSchedule(message):
     print(datetime.now(IST).ctime(), f"{tID}/getTeacherSchedule()")
     keyboard = telebot.types.ReplyKeyboardMarkup()
     markup = telebot.types.InlineKeyboardMarkup(row_width=1)
-    markup.add(btn_11)
+    markup.add(buttons["navigation"]["cancel"])
     msg = bot.send_message(
         tID,
         scheduleMessage_6,
@@ -403,32 +421,32 @@ def startRoutes(message):
     if inDatabase(tID):
         markup = telebot.types.InlineKeyboardMarkup(row_width=2)
         markup.add(
-            map_1,
-            map_2,
-            map_3,
-            map_4,
-            map_5,
-            map_6,
-            map_7,
-            map_8,
-            map_9,
-            map_10,
-            map_11,
-            map_12,
-            map_13,
-            map_14,
-            map_15,
-            map_16,
-            map_17,
-            map_18,
-            map_19,
-            map_20,
-            map_21,
-            map_22,
-            map_23,
-            map_24,
-            map_25,
-            map_26,
+            buttons["routes"]["main"],
+            buttons["routes"]["chem"],
+            buttons["routes"]["mech"],
+            buttons["routes"]["hydro_1"],
+            buttons["routes"]["hydro_2"],
+            buttons["routes"]["hydro_3"],
+            buttons["routes"]["nik"],
+            buttons["routes"]["stud_1"],
+            buttons["routes"]["stud_2"],
+            buttons["routes"]["stud_3"],
+            buttons["routes"]["stud_4"],
+            buttons["routes"]["stud_5"],
+            buttons["routes"]["stud_6"],
+            buttons["routes"]["stud_9"],
+            buttons["routes"]["stud_10"],
+            buttons["routes"]["stud_11"],
+            buttons["routes"]["stud_15"],
+            buttons["routes"]["stud_16"],
+            buttons["routes"]["sport"],
+            buttons["routes"]["lab"],
+            buttons["routes"]["ran"],
+            buttons["routes"]["prof_1"],
+            buttons["routes"]["prof_2"],
+            buttons["routes"]["teach_house"],
+            buttons["routes"]["abit"],
+            buttons["routes"]["ipm"],
         )
         text = replyMessage_5
         bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
@@ -443,7 +461,13 @@ def startSettings(message):
     tID = message.chat.id
     if inDatabase(tID):
         markup = telebot.types.InlineKeyboardMarkup(row_width=1)
-        markup.add(btn_19, btn_20, btn_21, btn_22, btn_23)
+        markup.add(
+            buttons["settings"]["name"],
+            buttons["settings"]["group"],
+            buttons["settings"]["help"],
+            buttons["settings"]["about"],
+            buttons["settings"]["suggest"],
+        )
         text = replyMessage_7
         bot.send_message(tID, text, parse_mode="Markdown", reply_markup=markup)
     else:
@@ -453,7 +477,7 @@ def startSettings(message):
 
 @bot.message_handler(commands=["find"])
 def startFind(message):
-    types.ReplyKeyboardRemove()
+    telebot.types.ReplyKeyboardRemove()
     tID = message.chat.id
     if inDatabase(tID):
         bot.send_message(tID, "Эта функция пока находится в разработке")
@@ -464,7 +488,7 @@ def startFind(message):
 
 @bot.message_handler(commands=["dogs"])
 def startDogs(message):
-    types.ReplyKeyboardRemove()
+    telebot.types.ReplyKeyboardRemove()
     tID = message.chat.id
     if inDatabase(tID):
         dog.getDog(directory=f"{mainSource}/cats/", filename=str(tID))
@@ -476,7 +500,7 @@ def startDogs(message):
 
 @bot.message_handler(commands=["message"])
 def startMessage(message):
-    types.ReplyKeyboardRemove()
+    telebot.types.ReplyKeyboardRemove()
     tID = message.chat.id
     if tID in adminList:
         text = serviceMessage_2
@@ -497,13 +521,6 @@ def startCats(message):
             parse_mode="Markdown",
             reply_markup=telebot.types.ReplyKeyboardRemove(),
         )
-
-
-"""
-@bot.message_handler(commands=['cats'])
-def startCats(message):
-    tID = message.chat.id
-"""
 
 
 @bot.message_handler(commands=["restart"])
@@ -546,12 +563,12 @@ def startCheckText(message):
             case _:
                 sendSchedule(tID, gettingData)
                 text = sendSchedule(tID, gettingData)
-                markup = types.InlineKeyboardMarkup(row_width=2)
-                markup.add(btn_35, btn_18)
+                markup = telebot.types.InlineKeyboardMarkup(row_width=2)
+                markup.add(
+                    buttons["navigation"]["back_teacher"],
+                    buttons["navigation"]["forward_teacher"],
+                )
                 bot.send_message(tID, text, parse_mode="Markdown", reply_markup=markup)
-
-
-# -----------------------------------------------------------------------------------------
 
 
 def inputName(message):
@@ -726,8 +743,8 @@ def sendText(message):
     inputText = message.text.strip()
     allSendMessage = inputText
     text = serviceMessage_3.format(inputText)
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    markup.add(btn_34, btn_11)
+    markup = telebot.types.InlineKeyboardMarkup(row_width=1)
+    markup.add(buttons["admin"]["send"], buttons["navigation"]["cancel"])
     bot.send_message(tID, text, reply_markup=markup, parse_mode="Markdown")
 
 
@@ -748,13 +765,12 @@ def getCat(tID):
     bot.send_photo(tID, open(f"{mainSource}/cats/{tID}.jpg", "rb"))
 
 
-def getSchedule(inputDate, type, groupID):
+def getSchedule(inputDate, type: int, groupID: str) -> None | list:
     outputData = []
     try:
-        localDate, localTime = inputDate.date(), inputDate.time()
+        localDate = inputDate.date()
     except AttributeError:
         localDate = inputDate
-    # print(localDate)
     requestLink = ""
     match type:
         case 0:  # Студент
@@ -762,7 +778,7 @@ def getSchedule(inputDate, type, groupID):
                 marker1, marker2 = map(int, groupID.split("-"))
             except Exception as e:
                 print(f"Error split {groupID}")
-                return -1
+                return None
             requestLink = scheduleStudentLink.format(marker1, marker2, localDate)
 
         case 1:  # Преподаватель
@@ -826,7 +842,7 @@ def getSchedule(inputDate, type, groupID):
 
 
 def sendSchedule(tID, inputData):
-    keyboard = types.ReplyKeyboardRemove()
+    keyboard = telebot.types.ReplyKeyboardRemove()
     keyboard = telebot.types.ReplyKeyboardMarkup()
     schedule, scheduleDate, type = inputData[0], inputData[1], inputData[2]
     match type:
@@ -900,7 +916,7 @@ def teacherSchedule_1(message):
         contents = contents.text
         soup = BeautifulSoup(contents, "lxml")
         teachersList = soup.find_all("div", class_="search-result__title")
-        keyboard = types.ReplyKeyboardRemove()
+        keyboard = telebot.types.ReplyKeyboardRemove()
         keyboard = telebot.types.ReplyKeyboardMarkup()
         if len(teachersList) != 0:
             for a in teachersList:
