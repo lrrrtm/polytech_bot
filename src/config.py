@@ -161,27 +161,20 @@ places = {
 
 nums = "0123456789"
 symbols = "!?.,$&^*#@;-=+"
-# -----------------------------------------------------------------------------------------
 
-# ПУТИ
+# Пути
 dbName = "db.db"
 mainSource = (
     "C:\\Users\\test\\Desktop\\polytech_bot\\polytech_bot\\"  # и что это за хуйня
 )
-# mainSource = "D:\Education\Pycharm projects\polytech_bot\\"
-# mainSource = "/home/lrrrtm1/"
 
-# -----------------------------------------------------------------------------------------
-
-# АДМИНКИ
+# Админки
 adminList = [
     409801981,
 ]
 mainAdminID = 409801981
 
-# -----------------------------------------------------------------------------------------
-#
-# КОНСТАНТЫ
+# Константы
 scheduleStudentLink = "https://ruz.spbstu.ru/faculty/{0}/groups/{1}?date={2}"
 scheduleTeacherLink = "https://ruz.spbstu.ru/teachers/{0}?date={1}"
 timeZone = "Turkey"
