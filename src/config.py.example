@@ -1,0 +1,9 @@
+key = "tg key"
+dbName = "db.db"
+mainSource = (
+    "/path/to/dir/with/db"
+)
+adminList = [
+    111,
+]
+mainAdminID = 123
