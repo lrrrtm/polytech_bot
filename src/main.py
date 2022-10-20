@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 
-import logging
-
-# import asyncio
 from aiogram import Bot, Dispatcher, executor, types, md
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-# import uvloop
-# import sys
+from datetime import datetime, timedelta
 
+import logging
 import re
 import schedule
-import config
 import sqlite3
+
+import config
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -27,9 +25,20 @@ db_con = sqlite3.connect(config.db_path)
 cur = db_con.cursor()
 
 # Create db table if not exists
-res = cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
-if not res.fetchone():
-    cur.execute("CREATE TABLE users(id, name, gid, lang)")
+cur.execute(
+    """CREATE TABLE IF NOT EXISTS users(
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    gid INTEGER,
+    lang TEXT)
+"""
+)
+cur.execute(
+    """CREATE TABLE IF NOT EXISTS schedule_datetime_states(
+    id INTEGER PRIMARY KEY,
+    datetime TEXT)
+"""
+)
 
 # Class for gid form
 class Form(StatesGroup):
@@ -95,23 +104,52 @@ async def process_gid(message: types.Message, state: FSMContext):
         )
 
 
-@dp.message_handler(commands=["schedule", "tschedule"])
-async def send_welcome(message: types.Message):
-    msg = await message.reply("Parsing...")
+@dp.message_handler(commands=["schedule"])
+async def send_schedule(message: types.Message):
+    """Send schedule for today"""
+    msg = await message.reply("Loading...")
     user = message.from_user
+    cur.execute(
+        f"INSERT OR REPLACE INTO schedule_datetime_states VALUES"
+        f"('{user['id']}','{datetime.now()}')"
+    )
+    await schedule_send_any(user, msg, 0)
+
+
+@dp.callback_query_handler(lambda cq: cq["data"] == "schedule_prev")
+async def schedule_next(callback_query: types.CallbackQuery):
+    await schedule_send_any(callback_query.from_user, callback_query.message, -1)
+
+
+@dp.callback_query_handler(lambda cq: cq["data"] == "schedule_next")
+async def schedule_next(callback_query: types.CallbackQuery):
+    await schedule_send_any(callback_query.from_user, callback_query.message, 1)
+
+
+async def schedule_send_any(user: types.User, message: types.Message, step: int):
     res = cur.execute(f"SELECT gid FROM users WHERE id='{user['id']}'")
-    (gid,) = res.fetchone()
-    if gid:
-        logging.info(message.get_command())
-        await msg.edit_text(
-            await schedule.get_shedule(
-                gid,
-                is_tomorrow=(True if message.text == "/tschedule" else False),
-            ),
+    try:
+        (gid,) = res.fetchone()
+        res = cur.execute(
+            f"SELECT datetime FROM schedule_datetime_states WHERE id='{user['id']}'"
+        )
+        dt = datetime.fromisoformat(res.fetchone()[0]) + timedelta(days=step)
+        cur.execute(
+            f"INSERT OR REPLACE INTO schedule_datetime_states VALUES"
+            f"('{user['id']}','{str(dt)}')"
+        )
+        await message.edit_text(
+            await schedule.get_shedule(gid, target_date=dt),
             parse_mode=types.message.ParseMode.MARKDOWN,
         )
-    else:
-        await msg.edit_text(
+        buttons = types.InlineKeyboardMarkup(row_width=2)
+        buttons.add(
+            types.InlineKeyboardButton(text="prev", callback_data="schedule_prev"),
+            types.InlineKeyboardButton(text="next", callback_data="schedule_next"),
+        )
+        await message.edit_reply_markup(buttons)
+    except TypeError:
+        await message.edit_text(
             "Тебе нужно зарегистрироваться используя команду `\\start`\!\!\!\!",
             parse_mode=types.message.ParseMode.MARKDOWN_V2,
         )
