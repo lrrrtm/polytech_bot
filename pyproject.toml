@@ -3,7 +3,7 @@ name = "polytech_bot"
 version = "0.1.0"
 description = "политех бот"
 authors = ["Kirill Tarasov <tarasov.ks@edu.spbstu.ru>"]
-license = "MIT"
+license = "AGPL-3.0"
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -11,14 +11,7 @@ aiogram = "^2.22.2"
 ujson = "^5.5.0"
 uvloop = "^0.17.0"
 aiodns = "^3.0.0"
-brotli = "^^0.7.0"
-
-bs4 = "^0.0.1"
-docxcompose = "^1.3.6"
-docxtpl = "^0.16.4"
-pytz = "^2022.5"
-random-cat = "^1.0.1"
-random-dog = "^1.0.2"
+brotlipy = "^0.7.0"
 
 [tool.poetry.dev-dependencies]
 
