@@ -144,8 +144,8 @@ async def schedule_send_any(user: types.User, message: types.Message, step: int)
         )
         buttons = types.InlineKeyboardMarkup(row_width=2)
         buttons.add(
-            types.InlineKeyboardButton(text="prev", callback_data="schedule_prev"),
-            types.InlineKeyboardButton(text="next", callback_data="schedule_next"),
+            types.InlineKeyboardButton(text="◀️", callback_data="schedule_prev"),
+            types.InlineKeyboardButton(text="▶️", callback_data="schedule_next"),
         )
         await message.edit_reply_markup(buttons)
     except TypeError:
