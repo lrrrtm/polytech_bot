@@ -1,5 +1,12 @@
-venv
-__pycache__
+# Environment
+venv/
+
+# Bytecode
+__pycache__/
+
+# Bot config
 config.py
+
+# Db stuff
 sqlite.db
 sqlite.db-journal
