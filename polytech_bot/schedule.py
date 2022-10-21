@@ -38,7 +38,7 @@ async def get_shedule(
                         f"🔸_{a['subject']}_\n"
                         f"🔸*{a['typeObj']['name']}*\n"
                         f"🔸*{a['auditories'][0]['building']['name']}, ауд. {a['auditories'][0]['name']}*\n"
-                        f"🔸*{'Неизвестно' if a['teachers'] == None else a['teachers'][0]['full_name']}*\n"
+                        f"🔸*{'Неизвестно' if not a['teachers'] else a['teachers'][0]['full_name']}*\n"
                         for a in schedule_json["days"][weekday]["lessons"]
                     ],
                 )
