@@ -59,6 +59,7 @@ async def send_mur(message: types.Message):
 @dp.message_handler(commands=["start", "help"])
 async def send_welcome(message: types.Message):
     """Greet user and prompt for gid"""
+
     await Form.gid.set()
     await message.reply(
         "зайди на ruz.spbstu.ru выбери свою граппу и скинь мне ссылку\n"
@@ -83,6 +84,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Form.gid)
 async def process_gid(message: types.Message, state: FSMContext):
     """Process group id and add user to db"""
+
     await state.finish()
     user = message.from_user
     if not re.match(
@@ -107,6 +109,7 @@ async def process_gid(message: types.Message, state: FSMContext):
 @dp.message_handler(commands=["schedule"])
 async def send_schedule(message: types.Message):
     """Send schedule for today"""
+
     msg = await message.reply("Loading...")
     user = message.from_user
     cur.execute(
