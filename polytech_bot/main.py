@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Initialize bot, dispatcher and sqlite connection
 storage = MemoryStorage()
-bot = Bot(token=config.key)
+bot = Bot(token=config.tg_key)
 dp = Dispatcher(bot, storage=storage)
 db_con = sqlite3.connect(config.db_path)
 cur = db_con.cursor()
