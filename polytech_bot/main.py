@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 
-from aiogram import Bot, Dispatcher, executor, types, md
+import logging
+import re
+import sqlite3
+from datetime import datetime, timedelta
+
+from aiogram import Bot, Dispatcher, executor, md, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from datetime import datetime, timedelta
-
-import logging
-import re
-import schedule
-import sqlite3
-
 import config
+import schedule
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -27,17 +26,17 @@ cur = db_con.cursor()
 # Create db table if not exists
 cur.execute(
     """CREATE TABLE IF NOT EXISTS users(
-    id INTEGER PRIMARY KEY,
-    name TEXT,
-    gid INTEGER,
-    lang TEXT)
-"""
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        gid INTEGER,
+        lang TEXT
+    )"""
 )
 cur.execute(
     """CREATE TABLE IF NOT EXISTS schedule_datetime_states(
-    id INTEGER PRIMARY KEY,
-    datetime TEXT)
-"""
+        id INTEGER PRIMARY KEY,
+        datetime TEXT
+    )"""
 )
 
 # Class for gid form

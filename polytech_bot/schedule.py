@@ -1,7 +1,8 @@
+import logging
+from datetime import datetime
+
 import aiohttp
 import ujson
-from datetime import datetime
-import logging
 
 
 async def get_shedule(
@@ -17,7 +18,9 @@ async def get_shedule(
         schedule_url: str = f"https://ruz.spbstu.ru/api/v1/ruz/scheduler/{gid}"
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(schedule_url, params={"date": str(target_date.date())}) as res:
+        async with session.get(
+            schedule_url, params={"date": str(target_date.date())}
+        ) as res:
             schedule_json = ujson.loads(await res.text())
             logging.debug(schedule_json)
             if not schedule_json["days"]:
