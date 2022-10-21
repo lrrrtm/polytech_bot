@@ -4,7 +4,9 @@ import logging
 import re
 import sqlite3
 from datetime import datetime, timedelta
+from wsgiref import headers
 
+from aiohttp import ClientSession
 from aiogram import Bot, Dispatcher, executor, md, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -66,6 +68,91 @@ async def send_welcome(message: types.Message):
     )
 
 
+@dp.message_handler(commands=["random_cat"])
+async def send_random_cat(message: types.Message):
+    async with ClientSession() as session:
+        params = {
+            "limit": 1,
+            "has_breeds": 1,
+        }
+        async with session.get(
+            "https://api.thecatapi.com/v1/images/search",
+            params=params,
+            headers={"x-api-key": config.random_cat_api_key},
+        ) as res:
+            cat = (await res.json())[0]
+            text = md.text(
+                md.bold(cat["breeds"][0]["name"]),
+                "\n\n",
+                cat["breeds"][0]["description"],
+                md.italic("\n\nTemperament: "),
+                (cat["breeds"][0]["temperament"]),
+                sep="",
+            )
+            try:
+                buttons = types.InlineKeyboardMarkup(row_width=2)
+                buttons.add(
+                    types.InlineKeyboardButton(text="👍", callback_data="random_vote"),
+                    types.InlineKeyboardButton(text="👎", callback_data="random_vote"),
+                )
+                await message.answer_photo(
+                    cat["url"],
+                    caption=text,
+                    parse_mode=types.message.ParseMode.MARKDOWN,
+                    reply_markup=buttons,
+                )
+            except KeyError:
+                await message.answer("Прости, сегодня без котиков")
+
+
+@dp.message_handler(commands=["random_dog"])
+async def send_random_dog(message: types.Message):
+    """у собак вообще другое апи и там невозможно получить рандомную без
+    костылей так что это нагромождение всегда возвращает одну и ту же собаку
+
+    однако учитывая что люди в среднем и вызывают эту команду один раз никто
+    ничего и не заметит"""
+    async with ClientSession() as session:
+        params = {
+            "limit": 1,
+            "attach_breed": 1,
+        }
+        async with session.get(
+            "https://api.thedogapi.com/v1/breeds",
+            params=params,
+            headers={"x-api-key": config.random_cat_api_key},
+        ) as res:
+            dog = (await res.json())[0]
+            text = md.text(
+                md.bold(dog["name"]),
+                md.italic("\n\nTemperament: "),
+                (dog["temperament"]),
+                sep="",
+            )
+            try:
+                buttons = types.InlineKeyboardMarkup(row_width=2)
+                buttons.add(
+                    types.InlineKeyboardButton(text="👍", callback_data="random_vote"),
+                    types.InlineKeyboardButton(text="👎", callback_data="random_vote"),
+                )
+                await message.answer_photo(
+                    dog["image"]["url"],
+                    caption=text,
+                    parse_mode=types.message.ParseMode.MARKDOWN,
+                    reply_markup=buttons,
+                )
+            except KeyError:
+                await message.answer("Прости, сегодня без собачек")
+
+
+@dp.callback_query_handler(lambda cq: cq["data"] == "random_vote")
+async def random_vote(callback_query: types.CallbackQuery):
+    """на самом деле голосования не существует,
+    но людям нравится думать что их выбор что то означает хд"""
+
+    await callback_query.answer("Thanks!")
+
+
 @dp.message_handler(state="*", commands=["cancel"])
 async def cancel_handler(message: types.Message, state: FSMContext):
     """Allow user to cancel action via /cancel command"""
@@ -121,11 +208,13 @@ async def send_schedule(message: types.Message):
 @dp.callback_query_handler(lambda cq: cq["data"] == "schedule_prev")
 async def schedule_next(callback_query: types.CallbackQuery):
     await schedule_send_any(callback_query.from_user, callback_query.message, -1)
+    await callback_query.answer()
 
 
 @dp.callback_query_handler(lambda cq: cq["data"] == "schedule_next")
 async def schedule_next(callback_query: types.CallbackQuery):
     await schedule_send_any(callback_query.from_user, callback_query.message, 1)
+    await callback_query.answer()
 
 
 async def schedule_send_any(user: types.User, message: types.Message, step: int):
