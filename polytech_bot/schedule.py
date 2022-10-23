@@ -1,27 +1,32 @@
+import logging
+from datetime import datetime
+
 import aiohttp
 import ujson
-from datetime import datetime
-import logging
 
 
 async def get_shedule(
     gid: str,
     target_date: datetime = datetime.now(),
     is_teacher: bool = False,
-) -> None | str:
+) -> str:
     if is_teacher:
         # мне пока что похуй на учителей (извините) если что сами добавите
         # schedule_url = "https://ruz.spbstu.ru/teachers/{gid}"
-        return None
+        return "nyi"
     else:
         schedule_url: str = f"https://ruz.spbstu.ru/api/v1/ruz/scheduler/{gid}"
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(schedule_url, params={"date": str(target_date.date())}) as res:
+        async with session.get(
+            schedule_url, params={"date": str(target_date.date())}
+        ) as res:
             schedule_json = ujson.loads(await res.text())
             logging.debug(schedule_json)
             if not schedule_json["days"]:
-                return "Радуйся политехник, на эту неделю занатия не поставлены!"
+                return (
+                    "Радуйся политехник, на эту неделю занатия не поставлены!"
+                )
 
             weekday = target_date.weekday()
 
@@ -35,7 +40,7 @@ async def get_shedule(
                         f"🔸_{a['subject']}_\n"
                         f"🔸*{a['typeObj']['name']}*\n"
                         f"🔸*{a['auditories'][0]['building']['name']}, ауд. {a['auditories'][0]['name']}*\n"
-                        f"🔸*{'Неизвестно' if a['teachers'] == None else a['teachers'][0]['full_name']}*\n"
+                        f"🔸*{'Неизвестно' if not a['teachers'] else a['teachers'][0]['full_name']}*\n"
                         for a in schedule_json["days"][weekday]["lessons"]
                     ],
                 )

@@ -1,0 +1,3 @@
+tg_key = "tg key"
+random_cat_api_key = "your key"
+db_path = "sqlite.db"
