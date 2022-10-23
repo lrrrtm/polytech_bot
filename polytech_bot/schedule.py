@@ -9,11 +9,11 @@ async def get_shedule(
     gid: str,
     target_date: datetime = datetime.now(),
     is_teacher: bool = False,
-) -> None | str:
+) -> str:
     if is_teacher:
         # мне пока что похуй на учителей (извините) если что сами добавите
         # schedule_url = "https://ruz.spbstu.ru/teachers/{gid}"
-        return None
+        return "nyi"
     else:
         schedule_url: str = f"https://ruz.spbstu.ru/api/v1/ruz/scheduler/{gid}"
 
@@ -24,7 +24,9 @@ async def get_shedule(
             schedule_json = ujson.loads(await res.text())
             logging.debug(schedule_json)
             if not schedule_json["days"]:
-                return "Радуйся политехник, на эту неделю занатия не поставлены!"
+                return (
+                    "Радуйся политехник, на эту неделю занатия не поставлены!"
+                )
 
             weekday = target_date.weekday()
 

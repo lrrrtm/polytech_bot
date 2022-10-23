@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
-
 import logging
 import re
 import sqlite3
 from datetime import datetime, timedelta
-from wsgiref import headers
 
 from aiohttp import ClientSession
 from aiogram import Bot, Dispatcher, executor, md, types
@@ -48,7 +45,7 @@ class Form(StatesGroup):
 
 # Easter eggs
 @dp.message_handler(text="мяу")
-async def send_mur(message: types.Message):
+async def send_mau(message: types.Message):
     await message.reply("мур")
 
 
@@ -92,8 +89,12 @@ async def send_random_cat(message: types.Message):
             try:
                 buttons = types.InlineKeyboardMarkup(row_width=2)
                 buttons.add(
-                    types.InlineKeyboardButton(text="👍", callback_data="random_vote"),
-                    types.InlineKeyboardButton(text="👎", callback_data="random_vote"),
+                    types.InlineKeyboardButton(
+                        text="👍", callback_data="random_vote"
+                    ),
+                    types.InlineKeyboardButton(
+                        text="👎", callback_data="random_vote"
+                    ),
                 )
                 await message.answer_photo(
                     cat["url"],
@@ -132,8 +133,12 @@ async def send_random_dog(message: types.Message):
             try:
                 buttons = types.InlineKeyboardMarkup(row_width=2)
                 buttons.add(
-                    types.InlineKeyboardButton(text="👍", callback_data="random_vote"),
-                    types.InlineKeyboardButton(text="👎", callback_data="random_vote"),
+                    types.InlineKeyboardButton(
+                        text="👍", callback_data="random_vote"
+                    ),
+                    types.InlineKeyboardButton(
+                        text="👎", callback_data="random_vote"
+                    ),
                 )
                 await message.answer_photo(
                     dog["image"]["url"],
@@ -188,7 +193,7 @@ async def process_gid(message: types.Message, state: FSMContext):
             db_con.commit()
         await message.reply(
             "Отлично теперь ты можешь использовать команду `/schedule`",
-            parse_mode=types.message.ParseMode.MARKDOWN_V2,
+            parse_mode=types.message.ParseMode.MARKDOWN,
         )
 
 
@@ -206,8 +211,10 @@ async def send_schedule(message: types.Message):
 
 
 @dp.callback_query_handler(lambda cq: cq["data"] == "schedule_prev")
-async def schedule_next(callback_query: types.CallbackQuery):
-    await schedule_send_any(callback_query.from_user, callback_query.message, -1)
+async def schedule_prev(callback_query: types.CallbackQuery):
+    await schedule_send_any(
+        callback_query.from_user, callback_query.message, -1
+    )
     await callback_query.answer()
 
 
@@ -217,7 +224,9 @@ async def schedule_next(callback_query: types.CallbackQuery):
     await callback_query.answer()
 
 
-async def schedule_send_any(user: types.User, message: types.Message, step: int):
+async def schedule_send_any(
+    user: types.User, message: types.Message, step: int
+):
     res = cur.execute(f"SELECT gid FROM users WHERE id='{user['id']}'")
     try:
         (gid,) = res.fetchone()
@@ -235,14 +244,18 @@ async def schedule_send_any(user: types.User, message: types.Message, step: int)
         )
         buttons = types.InlineKeyboardMarkup(row_width=2)
         buttons.add(
-            types.InlineKeyboardButton(text="◀️", callback_data="schedule_prev"),
-            types.InlineKeyboardButton(text="▶️", callback_data="schedule_next"),
+            types.InlineKeyboardButton(
+                text="◀️", callback_data="schedule_prev"
+            ),
+            types.InlineKeyboardButton(
+                text="▶️", callback_data="schedule_next"
+            ),
         )
         await message.edit_reply_markup(buttons)
     except TypeError:
         await message.edit_text(
-            "Тебе нужно зарегистрироваться используя команду `\\start`\!\!\!\!",
-            parse_mode=types.message.ParseMode.MARKDOWN_V2,
+            "Тебе нужно зарегистрироваться используя команду `\\start`!!!!",
+            parse_mode=types.message.ParseMode.MARKDOWN,
         )
 
 
